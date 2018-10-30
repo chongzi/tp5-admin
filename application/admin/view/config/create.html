@@ -1,0 +1,112 @@
+{extend name="layout/common" /}
+
+
+{block name="header"}
+<section class="content-header">
+    <h1>
+        编辑配置
+    </h1>
+</section>
+{/block}
+
+{block name="body"}
+<div class="row">
+
+    <div class="col-md-12">
+        <div class="box box-success">
+            <div class="box-header with-border">
+            </div>
+
+            <form action="{:url('admin/config/save')}" method="POST" class="form-horizontal ajax-post">
+                <div class="box-body">
+
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">配置标识</label>
+
+                        <div class="col-sm-10">
+                            <input type="text" name="name" class="form-control">
+                            <span class="help-block">用于config函数调用，只能使用英文且不能重复</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">配置标题</label>
+
+                        <div class="col-sm-10">
+                            <input type="text" name="title" class="form-control">
+                            <span class="help-block">用于后台显示的配置标题</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">排序</label>
+
+                        <div class="col-sm-10">
+                            <input type="number" name="sort" class="form-control">
+                            <span class="help-block">用于分组显示的顺序</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">配置类型</label>
+
+                        <div class="col-sm-10">
+                            <select class="form-control" name="type">
+                            {volist name=":config('config_type_list')" id="t"}
+                                <option value="{$key}" >{$t}</option>
+                            {/volist}
+                            </select>
+                            <span class="help-block">系统会根据不同类型解析配置值</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">配置分组</label>
+
+                        <div class="col-sm-10">
+                            <select class="form-control" name="group">
+                            {volist name=":config('config_group_list')" id="g"}
+                                <option value="{$key}" >{$g}</option>
+                            {/volist}
+                            </select>
+                            <span class="help-block">配置分组 用于批量设置 不分组则不会显示在系统设置中</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">配置值</label>
+
+                        <div class="col-sm-10">
+                            <textarea class="form-control" rows="3"  name="value"></textarea>
+                            <span class="help-block"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">配置项</label>
+
+                        <div class="col-sm-10">
+                            <textarea class="form-control" rows="3"  name="extra"></textarea>
+                            <span class="help-block">如果是枚举型 需要配置该项</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">说明</label>
+
+                        <div class="col-sm-10">
+                            <textarea class="form-control" rows="3"  name="remark"></textarea>
+                            <span class="help-block">配置详细说明</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="box-footer">
+                    <button class="btn btn-default back">返回</button>
+                    <button type="submit" class="btn btn-success">添加</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{/block}

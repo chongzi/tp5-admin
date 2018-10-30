@@ -1,0 +1,178 @@
+<?php
+namespace base;
+
+//模板文件管理
+class ModuleFile
+{
+    /**
+    *获取表的模板生成情况
+    * @arr 表数组
+    */
+	public static function lists($arr_table_name)
+	{
+        $list = self::get_module_list($arr_table_name);
+        $list = self::load($list);
+        return $list;
+	}
+
+    /*
+    批量生成模块文件（包括view,controller,logic,model,validate）
+    * @arr 表数组
+    */
+	public static function creates($arr_table_type)
+	{
+        if($arr_table_type)
+        {
+            foreach ($arr_table_type as $tt) 
+            {
+                $arr = explode("|", $tt);
+                if(count($arr)==2)
+                {
+                    $table_name = $arr[0];
+                    $type = $arr[1];
+                    self::create($type,$table_name);
+                }
+            }
+        }
+        return true ;
+        /*foreach ($arr_table_name as $table_name)
+        {
+            $type_list = ['view','controller','logic','model','validate'];
+            foreach ($arr_type as $type) 
+            {
+                $type = str_replace($table_name."|", "", $type);
+                if(in_array($type, $type_list))
+                {
+                    self::create($type,$table_name);    
+                }
+                
+            }
+        }*/
+	}
+
+    /*
+    生成单个模块文件
+    * @type （view,controller,logic,model,validate）
+    * @type 表名
+    */
+    public static function create($type,$table_name)
+    {
+        $arr_module_name = self::get_module_names($table_name);
+        if($type == "view")
+        {
+            copy_dir('../application/admin/view/template','../application/admin/view/'.$arr_module_name["module_cname"]);
+        }
+        else
+        {
+            $source_file = "../application/admin/".$type."/"."template.php";
+            $dest_file = "../application/admin/".$type."/".$arr_module_name["module_name"].".php";
+            $file = fopen($source_file, "r") or die("Unable to open file!!");
+            $content = fread($file,filesize($source_file));
+            fclose($file);
+
+            $content = self::content_replace($content,$table_name);
+            if(!file_exists($dest_file))
+            {
+                $myfile = fopen($dest_file, "w") or die("Unable to open file!!!");
+                fwrite($myfile, $content);
+                fclose($myfile);
+            }
+        }
+        return true;
+    }
+
+    private static function content_replace($content,$table_name)
+    {
+        //$content = "{module_name}{module_cname}";
+        //echo $content;exit();
+        $arr_module_name = self::get_module_names($table_name);
+        //dump($arr_module_name);
+        foreach ($arr_module_name as $key => $value) 
+        {
+            $search = "{".$key."}";
+            $content = str_replace($search, $value, $content);    
+        }
+        return $content;
+    }
+
+    /*
+    返回模块信息列表（包括表名(如：s_news_type)，模块名(如：NewsType)，模块别名(如：news_type)）
+    * @arr 表数组
+    */
+	private static function get_module_list($arr)
+    {
+        $prefix = config("database.prefix");
+        foreach($arr as $a)
+        {
+	        $temp = self::get_module_names($a);
+            $temp["table_name"] = $a;
+	        $new_list[] = $temp;
+        }
+        return $new_list;
+    }
+
+    /*
+    返回模块信息（包括表名(如：s_news_type)，模块名(如：NewsType)，模块别名(如：news_type)）
+    * @table_name 表名
+    */
+	private static function get_module_names($table_name)
+	{
+		$prefix = config("database.prefix");
+	    $table_name = substr($table_name, strlen($prefix));
+	    $arr = explode('_', $table_name);
+        if($arr)
+        {
+            foreach ($arr as $row) 
+            {
+                $module_name .= ucfirst($row);
+            }
+        }
+	    else
+        {
+            $module_name = $table_name;
+        }
+	    $res["module_cname"] = $table_name;//如：news_type
+	    $res["module_name"] = $module_name;//如：NewsType
+	    return $res;
+	}
+
+    /*
+    返回模块文件生成情况
+    * @list 模块列表
+    */
+    private static function load($list)
+    {
+        $type_list = ['view','controller','logic','model','validate','service'];
+        foreach ($list as &$row)
+        {
+            //$temp["name"] = $row;
+            $temp = $row;
+            foreach ($type_list as $type) 
+            {
+                $temp[$type."_status"] = self::is_exists_file($type,$row);
+            }
+            $new_list[] = $temp;
+        }
+        return $new_list;
+    }
+
+    /*
+    判断模块文件是否存在
+    * @type 模块类型
+    * @arr_modulenames：模块名数组
+    */
+    private static function is_exists_file($type,$arr_modulenames)
+    {
+        if($type == "view")
+        {
+            $path = '../application/admin/'.$type."/".$arr_modulenames["module_cname"];
+            return is_dir($path);
+
+        }
+        else
+        {
+            $path = '../application/admin/'.$type."/".$arr_modulenames["module_name"].".php";
+            return file_exists($path);
+        }
+    }
+}

@@ -1,0 +1,50 @@
+{extend name="layout/common" /}
+
+{block name="header"}
+<section class="content-header">
+    <h1>
+        角色授权
+    </h1>
+</section>
+{/block}
+
+{block name="body"}
+<div class="row">
+<div class="col-xs-12">
+<div class="box box-success">
+<form action="{:url('admin/manager/auth', ['id' => $manager->id])}" method="POST" class="ajax-post">
+    <div class="box-header">
+        昵称：{$manager->nick_name}
+    </div>
+    
+    <div class="box-body">
+        <table class="table table-hover table-bordered">
+            <tr>
+                <th>授权</th>
+                <th>ID</th>
+                <th>用户组名称</th>
+                <th>描述</th>
+            </tr>
+            {volist name="groups" id="group"}
+            <tr>
+                <td><input type="checkbox" class="checkbox" name="groupIds[]" value="{$group->id}"
+                    {:in_array($group->id, $groupIds) ? 'checked' : ''} ></td>
+                <td>{$group.id}</td>
+                <td>{$group.title}</td>
+                <td>{$group.description}</td>
+            </tr>
+            {/volist}
+            
+        </table>
+        
+    </div>
+
+    <div class="box-footer clearfix">
+        <button class="btn btn-default back">返回</button>
+        <button type="submit" class="btn btn-success">确认</button>
+    </div>
+</form>
+</div>
+</div>
+</div>
+{/block}

@@ -1,0 +1,159 @@
+{extend name="layout/common" /} {block name="header"} {/block} {block name="body"}
+<div class="row">
+    <div class="col-md-12">
+        <div class="box box-success">
+            <div class="box-header with-border">
+            </div>
+            <form method="post" action="{:Url('upd')}" enctype="multipart/form-data" role="form" class="form-inline">
+                <table class="table table-hover table-bordered">
+                    <tbody>
+                        <tr>
+                            <td colspan="3">
+                                <h3>编辑应用</h3></td>
+                            </tr>
+                            <tr>
+                                <td width="200px">封面图标</td>
+                                <td>
+                                    <input type="file" id="file_upload1" value="选择图片" name="ico" class="checkPic" style="position:absolute;opacity:0;width:100%;height:50px;z-index:1;cursor:pointer;" />
+                                    <input class="btn btn-primary radius" value="选择图片"/>
+                                    &nbsp;<img src="{$info['ico']}" id = "icoimg" width="100" class="ico">
+                                    <input type="hidden" id="smallimg" name="ico" value="{$info.ico}">
+                                </td>
+                            </tr>
+                            <tr>
+                                <input type="hidden" name="id" value="{$info['id']}" />
+                                <td width="200px" >分享标题,图片：</td>
+                                <td id="shareParent">
+                                    <button type='button' class="btn btn-primary" id="addShare" num="{:count($info.share_title)}">添加</button>
+                                    {if condition="$info['share_ico'] || $info['share_title']"}
+                                    {volist name="info['share_title']" id="vo"}
+                                </br>分享 {$key+1} <input name="share_title[{$key}]" size="16" type="text" value="{$vo}" class="form-control"  style="width: 400px;" />
+                                <input size="16" type="file" name="share_ico[{$key}]" key="{$key}" class="form-control" />&nbsp;<img src="{$info['share_ico'][$key]}" width="100" class="ico">
+                                {if condition="$info['share_ico'][$key]"}
+                                <input type="hidden" name="share_ico[{$key}]" value="{$info['share_ico'][$key]}" />
+
+                                {/if}
+                                <input type="hidden" name="key[{$key}]" id="key{$key}" value="" />
+                                {/volist}
+                                {/if}
+                            </td>
+
+                        </tr>
+                        <tr>
+                            <td width="200px">素材名称：</td>
+                            <td>
+                                <input name="title" size="16" type="text" value="{$info['title']}"  class="form-control" style="width: 400px;" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>添加拒绝词：</td>
+                                <td id="addParent">
+                                    <button type='button' class="btn btn-primary" id="addAnswer" num="{:count($words)}">添加</button>
+                                    {if condition="$type == 'add'"}
+
+                                    {else/}
+                                    {volist name="words" id="vo"}
+                                </br>拒绝词{php}echo $key + 1;{/php} ：<input type="text" name="word_value[{$key}]" class="form-control" style="width: 400px;" size="16" value="{$vo.content}"/> 排序：<input type="text" name="word_sort[{$key}]" class="form-control" style="width: 100px;" size="16" value="{$vo.sort}"/><input type="hidden" name="word_id[]" class="form-control" style="width: 100px;" size="16" value="{$vo.id}"/>
+                                {/volist}
+                                {/if}
+
+                            </td>
+                        </tr>
+
+
+                        <tr>
+                            <td>排序：</td>
+                            <td>
+                                <input size="16" type="text" name="sort" value="{notempty name='info.id'}{$info['sort']}{/notempty}" class="form-control" style="width: 400px;" />
+                            </td>
+                        </tr>
+                     
+
+        </tbody>
+    </table>
+    <div class="row-fluid" style="margin-top: 20px;margin-left: 200px;padding-bottom:20px;">
+        {notempty name="info.id"}
+        <input type="hidden" name="id" value="{$info['id']}" />{/notempty}
+        <button class="btn btn-primary" type="submit">提交</button>
+        <button class="btn" type="reset" style="margin-left: 30px;">取消</button>
+    </div>
+</form>
+</div>
+</div>
+</div>
+{/block} {block name="script"}
+<script type="text/javascript" src="/static/plupload-2.1.2/js/plupload.full.min.js"></script>
+<script type="text/javascript" src="/static/plupload-2.1.2/js/upload2.js"></script>
+<script>
+ $(function(){
+    var n = $('#addAnswer').attr('num');
+    if(!n) n = 0;
+    $('#addAnswer').click(function(){
+        var html = '</br>拒绝词'+(parseInt(n)+1)+' ：<input type="text" name="word_value['+n+']" class="form-control" style="width: 400px;" size="16"/> 排序：<input type="text" name="word_sort['+n+']" class="form-control" style="width: 100px;" size="16"/>  <button type="button" class="btn btn-primary" onclick="deletetr($(this))">删除</button>';
+        $('#addParent').append(html);
+        n++;
+    })
+    var a = $('#addShare').attr('num');
+    if(!a) a = 0;
+    $('#addShare').click(function(){
+        var html = '</br>分享 '+(parseInt(a)+1)+' <input name="share_title['+a+']" size="16" type="text" value="" class="form-control"  style="width: 400px;" />&nbsp;<input size="16" type="file" name="share_ico[]" id="ico" class="form-control" /><img src="" width="100" class="ico"><input type="hidden" name="key['+a+']" id="key'+a+'" value="'+a+'" />';
+        $('#shareParent').append(html);
+        a++;
+    })
+
+    var b = $('#addAnswerTime').attr('num');
+    if(!b) b = 0;
+    $('#addAnswerTime').click(function(){
+        var html = '</br>题目 ：<input type="text" placeholder="1-5" name="answer_no['+b+']" class="form-control" style="width: 100px;" size="16" value="{$vo.answer_no}"/> 答题时间 ：<input type="text" name="answer_time['+b+']" class="form-control" style="width: 100px;" size="16" value="{$vo.sign_value}"/> (不带单位)';
+        $('#addParentTime').append(html);
+        b++;
+    })
+})
+
+ function deletetr(obj){
+  
+ }
+
+ $("#file_upload1").change(function(){
+    var fileObj = $(this)[0].files[0];
+    console.log(fileObj);
+    var FileController = "{:url('ajaxImg')}";
+    var form = new FormData();
+    fileid = $(this).attr('id');
+    form.append("ico", fileObj);
+    createXMLHttpRequest();
+    xhr.onreadystatechange = handleStateChange;
+    xhr.open("post", FileController, true);
+    xhr.send(form);
+})
+
+ function createXMLHttpRequest() {
+    if (window.ActiveXObject) {
+        xhr = new ActiveXObject("Microsoft.XMLHTTP");
+    } else if (window.XMLHttpRequest) {
+        xhr = new XMLHttpRequest();
+    }
+}
+
+function handleStateChange() {
+    if (xhr.readyState == 4) {
+        if (xhr.status == 200 || xhr.status == 0) {
+            var result = xhr.responseText;
+            var json = eval("(" + result + ")");
+            if(json.status == 'success'){
+                console.log(json);
+                $("#smallimg").val(json.img);
+                $("#icoimg").attr('src',json.img);
+            }
+        }
+    }
+}
+$("#voice").fileinput({
+    language: 'zh', //设置语言
+});
+$('input[type=file]').change(function(){
+  var key = $(this).attr('key');
+  $('#key'+key).val(key);
+})
+</script>
+{/block}

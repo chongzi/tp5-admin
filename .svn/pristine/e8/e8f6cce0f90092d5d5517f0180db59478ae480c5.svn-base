@@ -1,0 +1,52 @@
+<div id="alert" class="main-alert alert alert-dismissible alert-danger">
+    <button type="button" class="close" click="alertClose">×</button>
+    <h4><i class="icon fa fa-warning"></i><span></span></h4>
+</div>
+
+<div class="modal modal-default fade" id="modal-panel">
+    <div class="modal-dialog">
+        <div class="panel panel-default">
+            <div class="panel-heading" data-dismiss="modal">消息</div>
+            <div class="panel-body text-center">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal modal-default fade" id="modal-confirm">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">确认执行该操作？</h4>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default pull-left reject" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-danger resolve" data-dismiss="modal">确认</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal modal-default fade" id="modal-prompt">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">确认执行该操作？</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                  <input type="text" name="prompt" class="form-control">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default pull-left reject" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-danger resolve" data-dismiss="modal">确认</button>
+            </div>
+        </div>
+    </div>
+</div>
+

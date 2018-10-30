@@ -1,0 +1,258 @@
+<!doctype html>
+<html>
+<head>
+<include file="Public/head" title="用户查询" />
+</head>
+<body>
+    <nav class="navbar navbar-default">
+        <div class="container">
+            <div class="navbar-form">
+                <if condition="$userRole eq 'admin'">
+                    <div class="col-md-2">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">站点</span>
+                            <select id="sites" class="form-control">
+                                <foreach name="sites" item="site">
+                                    <if condition="$site['id'] == $siteId">
+                                        <option value="{$site.id}" selected>{$site.name}</option>
+                                    <else />
+                                        <option value="{$site.id}">{$site.name}</option>
+                                    </if>
+                                </foreach>
+                            </select>
+                        </div>
+
+                    </div>
+                <else />
+                    <input type="hidden" id="sites" value="{$_site_id}" />
+                </if>
+                <if condition="$userRole eq 'admin' || $userRole eq 'webmaster'">
+                    <div class="col-md-2">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">用户</span>
+                            <select id="employees" class="form-control"></select>
+                        </div>
+                    </div>
+                <else />
+                    <input type="hidden" id="employees" value="{$_eid}" />
+                </if>
+                <div class="col-md-2">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">平台</span>
+                            <select id="platform" name='platform' class="form-control">
+                                <option value="1">PC端</option>
+                                <option value="2">移动端</option>
+                            </select>
+                        </div>
+
+                    </div>
+                <div class="col-md-7">
+                    <div class="col-md-6">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">添加日期</span>
+                            <input type="text" class="form-control input-date" id="adate_s" value="{$adate_s}" readonly />
+                            <span class="input-group-addon input-group-addon-center">-</span>
+                            <input type="text" class="form-control input-date" id="adate_e" value="{$adate_e}" readonly />
+                            <div class="input-group-btn">
+                                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" tabindex="-1"><span class="caret"></span></button>
+                                <ul class="dropdown-menu pull-right" role="menu">
+                                    <foreach name="dates" item="item">
+                                        <li><a href="javascript:void(0);" data-dates="{$item.date_s}" data-datee="{$item.date_e}" class="quick-date">{$item.cnName}</a></li>
+                                    </foreach>
+                                </ul>
+                          </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-addon">访问日期</span>
+                            <input type="text" class="form-control input-date" id="vdate_s" value="{$vdate_s}" readonly />
+                            <span class="input-group-addon input-group-addon-center">-</span>
+                            <input type="text" class="form-control input-date" id="vdate_e" value="{$vdate_e}" readonly />
+                            <div class="input-group-btn">
+                                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" tabindex="-1"><span class="caret"></span></button>
+                                <ul class="dropdown-menu pull-right" role="menu">
+                                    <foreach name="dates" item="item">
+                                        <li><a href="javascript:void(0);" data-dates="{$item.date_s}" data-datee="{$item.date_e}" class="quick-date">{$item.cnName}</a></li>
+                                    </foreach>
+                                </ul>
+                          </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-1"><button type="button" class="btn btn-primary btn-sm" id="query">查询</button></div>
+            </div>
+        </div>
+    </nav>
+    <div class="container" id="container"></div>
+
+    <div class="modal fade" id="modal-keyword" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modal-log" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body">
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+$(function() {
+
+    $(".input-date").datepicker({ maxDate: "0d" });
+    if($('#sites').val()==1 || $('#sites').val()==6 ){
+            $('#platform').html('<option value="1">PC端</option><option value="2">移动端</option><option value="3">baidu</option>');        
+    }
+    $('#sites').change(function(){
+        if($('#sites').val()==1 || $('#sites').val()==6 ){
+            $('#platform').html('<option value="1">PC端</option><option value="2">移动端</option><option value="3">baidu</option>');
+        }else{
+            $('#platform').html('<option value="1">PC端</option><option value="2">移动端</option>');
+        }
+    });
+    var is_exec = 0;
+    $('#query').click(function() {
+        
+        showData($('#employees').val(), $('#adate_s').val(), $('#adate_e').val(), $('#vdate_s').val(), $('#vdate_e').val(),$('#platform').val());
+
+    });
+
+    $('.quick-date').click(function() {
+        var that = $(this), container = that.closest('.input-group');
+        container.find('[id$=date_s]').val(that.data('dates'));
+        container.find('[id$=date_e]').val(that.data('datee'));
+    });
+
+    function showData(eid, adate_s, adate_e, vdate_s, vdate_e, platform,type, page) {
+        // _adate_s = new Date(Date.parse(adate_s.replace(/-/g, "/")));
+        // _adate_s = _adate_s.getMonth();
+        // _adate_e = new Date(Date.parse(adate_e.replace(/-/g, "/")));
+        // _adate_e = _adate_e.getMonth();
+        // _vdate_s = new Date(Date.parse(vdate_s.replace(/-/g, "/")));
+        // _vdate_s = _vdate_s.getMonth();
+        // _vdate_e = new Date(Date.parse(vdate_e.replace(/-/g, "/")));
+        // _vdate_e = _vdate_e.getMonth();
+        // if(_adate_e - _adate_s > 3 ){
+        //     alert('添加时间间隔请不要超过3个月！');
+        //     return
+        // }  
+        // if(_adate_e - _adate_s>3){
+        //     alert('访问时间间隔请不要超过3个月！');
+        //     return
+        // } 
+        // if(window.is_exec == 1){
+        //     alert('正在查询,请稍后！');
+        //     return;
+        // }       
+        $('#container').empty().html('<div class="col-md-8 col-md-offset-2"><div class="progress progress-striped active"><div class="progress-bar" style="width: 100%;">数据加载中………</div></div></div>');
+
+        window.is_exec = 1;
+
+        var url = (eid == 0 ? '{:U('Home/Release/sitedata')}' : '{:U('Home/Release/epydata')}'), // 根据 eid 判断是查个人还是整站数据
+            data = {'eid': eid, 'site_id':$('#sites').val(), 'adate_s': adate_s, 'adate_e': adate_e, 'vdate_s': vdate_s, 'vdate_e': vdate_e, 'platform':platform,'type': type, 'page': page};
+        $.ajax({
+            url:url,
+            type:"get",
+            data:data,
+            dataType:"json",
+            success:function(result) {
+                
+                if(result.status) {
+                    var adate_s  = $('#adate_s').val(),
+                        adate_e  = $('#adate_e').val(),
+                        vdate_s  = $('#vdate_s').val(),
+                        vdate_e  = $('#vdate_e').val();
+                        platform = $('#platform').val();
+                    $('#employees').val(eid);
+                    $('#container').empty().html(result.data);
+                    $('.view-employee').click(function() {
+                        var that = $(this);
+                        showData(that.data('eid'), adate_s, adate_e, vdate_s, vdate_e, platform,that.data('type'), that.data('page'));
+                    });
+                    if(eid == 0) { // 如果查整站数据
+                    } else { // 如果查个人数据，将 .view-keyword 绑定事件
+                        $('.view-keyword').click(function() {
+                            var that = $(this),
+                                vdate_s = $('#vdate_s').val(),
+                                vdate_e = $('#vdate_e').val();
+                            $('#modal-keyword')
+                                .find('.modal-body').html('<div class="row"><div class="col-md-8 col-md-offset-2"><div class="progress progress-striped active"><div class="progress-bar" style="width: 100%;">数据加载中………</div></div></div></div>').end()
+                                .find('.modal-title span').html('(' + vdate_s + (vdate_s != vdate_e ? '&nbsp;至&nbsp;' + vdate_e : '') + ')').end()
+                            .modal();
+                            $.get(
+                                '{:U('Home/keyword/rsc')}',
+                                {'rid': that.data('rid'), 'vdate_s': vdate_s, 'vdate_e': vdate_e, 'site_id':$('#sites').val(), 'platform':$('#platform').val()},
+                                function(result) {
+                                    if(result.status) {
+                                        $('#modal-keyword .modal-body').html(result.data);
+                                    }
+                                },
+                                'json'
+                            )
+                        });
+                        $('.view-log').click(showLog);
+                    }
+                }
+            },
+            error: function(XMLHttpRequest, textStatus, errorThrown) {
+                alert('查询出错,请重试')
+                   },
+            complete: function(XMLHttpRequest, textStatus) {
+                window.is_exec = 0
+            }
+        });
+    }
+
+    function showLog() {
+        var that = $(this),
+            data = {'rid': that.data('rid'), 'site_id':$('#sites').val(), 'vdate_s': $('#vdate_s').val(), 'vdate_e': $('#vdate_e').val(), 'platform':$('#platform').val(),'p': that.data('page'), 'rows': that.data('rows')};
+        $('#modal-log')
+            .find('.modal-body').html('<div class="row"><div class="col-md-8 col-md-offset-2"><div class="progress progress-striped active"><div class="progress-bar" style="width: 100%;">数据加载中………</div></div></div></div>').end()
+        .modal();
+        $.get(
+            '{:U('Home/Release/rsclog')}',
+            data,
+            function(result) {
+                if(result.status) {
+                    $('#modal-log .modal-body').html(result.data);
+                    $('#modal-log .view-log').click(showLog);
+                }
+            }
+        );
+    }
+<if condition="$userRole eq 'admin' || $userRole eq 'webmaster'">
+    var employees = {$employees|json_encode};
+    function setUsers(siteid) {
+        if(employees[siteid] != undefined) {
+            dom = '<option value="0">所有用户</option>';
+            for(i in employees[siteid]) {
+                if(employees[siteid][i].onList) {
+                    if(employees[siteid][i].id == {$eid}) {
+                       dom += '<option value="' + employees[siteid][i].id + '" selected>' + employees[siteid][i].cnName + '</option>';
+                    } else {
+                        dom += '<option value="' + employees[siteid][i].id + '">' + employees[siteid][i].cnName + '</option>';
+                    }
+                }
+            }
+            $('#employees').html(dom);
+        }
+    }
+
+    $('#sites').change(function() {
+        setUsers($(this).val());
+    });
+
+    setUsers($('#sites').val());
+</if>
+    showData($('#employees').val(), $('#adate_s').val(), $('#adate_e').val(), $('#vdate_s').val(), $('#vdate_e').val(),$('#platform').val());
+});
+</script>
+</body>
+</html>

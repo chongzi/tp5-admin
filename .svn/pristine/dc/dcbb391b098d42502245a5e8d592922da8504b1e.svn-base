@@ -1,0 +1,187 @@
+<?php
+namespace aliyunOss;
+use OSS\OssClient;
+use OSS\Core\OssException;
+
+class filemanage{
+
+    private $ossClient;
+    private $bucketName;
+    private $accessKeyId;
+    private $EndpointDomain;
+
+    public function __construct($config = []) {
+        $this->accessKeyId = isset($config['accessKeyId'])?$config['accessKeyId']:config::AccessKeyID;
+        $this->accessKeySecret = isset($config['accessKeySecret'])?$config['accessKeySecret']:config::AccessKeySecret;        
+        $this->EndpointDomain = isset($config['EndpointDomain'])?$config['EndpointDomain']:config::EndpointDomain;
+        $this->bucketNameName = isset($config['bucketName'])?$config['bucketName']:config::BucketName;
+        try {
+            $this->ossClient = new OssClient($this->accessKeyId, $this->accessKeySecret, $this->EndpointDomain, false);
+        } catch (OssException $e) {
+            printf(__FUNCTION__ . "creating OssClient instance: FAILED\n");
+            printf($e->getMessage() . "\n");
+            return null;
+        }
+   }
+
+    /**
+     * 上传指定的本地文件内容
+     *
+     * @param OssClient $ossClient OSSClient实例
+     * @param string $bucket 存储空间名称
+     * @return null
+     */
+    public function uploadFile($object, $file_path)
+    {
+        try{
+            $this->ossClient->uploadFile($this->bucketName, $object, $file_path);
+        } catch(OssException $e) {
+            printf(__FUNCTION__ . ": FAILED\n");
+            printf($e->getMessage() . "\n");
+            return;
+        }
+    }
+    /**
+     * 列出Bucket内所有目录和文件， 根据返回的nextMarker循环调用listObjects接口得到所有文件和目录
+     *
+     * @param OssClient $ossClient OssClient实例
+     * @param string $bucket 存储空间名称
+     * @return null
+     *  eg: $prefix = 'user-dir/';
+     */
+    public function listAllObjects($prefix)
+    {
+        //构造dir下的文件和虚拟目录
+        $delimiter = '/';
+        $nextMarker = '';
+        $maxkeys = 30;
+        $return = array();
+        while (true) {
+            $options = array(
+                'delimiter' => $delimiter,
+                'prefix' => $prefix,
+                'max-keys' => $maxkeys,
+                'marker' => $nextMarker,
+            );
+            try {
+                $listObjectInfo = $this->ossClient->listObjects($this->bucketNameName, $options);
+            } catch (OssException $e) {
+                printf(__FUNCTION__ . ": FAILED\n");
+                printf($e->getMessage() . "\n");
+                return;
+            }
+            // 得到nextMarker，从上一次listObjects读到的最后一个文件的下一个文件开始继续获取文件列表
+            $nextMarker = $listObjectInfo->getNextMarker();
+            $listObject = $listObjectInfo->getObjectList();
+            // $listPrefix = $listObjectInfo->getPrefixList();
+            foreach($listObject as $value){
+                $return[] = $value->getkey();
+            }
+            // dump($listPrefix);
+
+            if ($nextMarker === '') {
+                break;
+            }
+        }
+        return $return;
+    }
+
+    /**
+     * 判断object是否存在
+     *
+     * @param OssClient $ossClient OSSClient实例
+     * @param string $bucket bucket名字
+     * @return null
+     */
+    public function doesObjectExist($object)
+    {
+        try{
+            $exist = $this->ossClient->doesObjectExist($this->bucketName, $object);
+        } catch(OssException $e) {
+
+        }
+        return $exist;
+    }
+
+    /**
+     * 删除object
+     *
+     * @param OssClient $ossClient OSSClient实例
+     * @param string $bucket bucket名字
+     * @return null
+     */
+    public function deleteObject($object)
+    {
+        try{
+            $this->ossClient->deleteObject($this->bucketName, $object);
+        } catch(OssException $e) {
+            printf(__FUNCTION__ . ": FAILED\n");
+            printf($e->getMessage() . "\n");
+            return;
+        }
+    }
+
+    /**
+     * 批量删除object
+     *
+     * @param OssClient $ossClient OSSClient实例
+     * @param string $bucket bucket名字
+     * @return null
+     */
+    public function deleteObjects($objects)
+    {
+        try{
+           $bloon = $this->ossClient->deleteObjects($this->bucketName, $objects);
+        } catch(OssException $e) {
+            printf(__FUNCTION__ . ": FAILED\n");
+            printf($e->getMessage() . "\n");
+        }
+        return $bloon;
+    }
+
+    public function copyObject($old_object,$new_object)
+    {
+        try{
+            $bloon = $this->ossClient->copyObject($this->bucketName, $old_object, $this->bucketName, $new_object);
+        } catch(OssException $e) {
+            printf(__FUNCTION__ . ": FAILED\n");
+            printf($e->getMessage() . "\n");            
+        }
+        return $bloon;
+    }
+    /**
+     * get_object_to_local_file
+     *
+     * 获取object
+     * 将object下载到指定的文件
+     *
+     * @param OssClient $ossClient OssClient实例
+     * @param string $bucket 存储空间名称
+     * @return null
+     */
+    public function getObjectToLocalFile()
+    {
+        $object = "Video/d9cb5e739e1df35d25e9e18bde552f5";
+        $localfile = "d9cb5e739e1df35d25e9e18bde552f5.mp4";
+        $options = array(
+            OssClient::OSS_FILE_DOWNLOAD => $localfile,
+        );
+        try {
+            $this->ossClient->getObject($this->bucketNameName, $object, $options);
+        } catch (OssException $e) {
+            printf(__FUNCTION__ . ": FAILED\n");
+            printf($e->getMessage() . "\n");
+            return;
+        }
+        print(__FUNCTION__ . ": OK, please check localfile: 'Video/d9cb5e739e1df35d25e9e18bde552f5'" . "\n");
+        if (file_get_contents($localfile) === file_get_contents(__FILE__)) {
+            print(__FUNCTION__ . ": FileContent checked OK" . "\n");
+        } else {
+            print(__FUNCTION__ . ": FileContent checked FAILED" . "\n");
+        }
+        // if (file_exists($localfile)) {
+        //     unlink($localfile);
+        // }
+    }
+
+}

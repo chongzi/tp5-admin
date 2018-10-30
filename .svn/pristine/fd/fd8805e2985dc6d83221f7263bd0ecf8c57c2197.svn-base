@@ -1,0 +1,98 @@
+<?php
+
+namespace base\payment;;
+
+/**
+*public function init($info){}
+*public function returnUrl(){}
+*public function notifyUrl(){}
+*public function closeOrder($out_trade_no){}
+*public function orderQuery($out_trade_no){}
+*public function refund($out_trade_no, $total_fee, $refund_fee){}
+*public function refundQuery($out_trade_no){}
+*public function app(){}
+*public function web(){}
+*public function mobile(){}
+ */
+interface Ipay
+{
+
+    /**
+     * 信息初始化，传入支付相关信息
+     *     初始化的信息在对象内部通过 $this->info 获取
+     *     1. 订单创建时需要以下参数
+     *         our_trade_no: 系统订单号
+     *         title: 订单标题
+     *         money: 订单金额 元整数
+     *         [product_id: 商品ID]
+     *         [attach: 附加信息]
+     *         [tag: 商品标签]
+     *     
+     *     2. 微信公众号支付需要以下参数
+     *         openid: 
+     *
+     */
+    public function init($info);
+
+    /**
+     * 支付成功前台回调，仅仅在 web 支付中可能会用到
+     */
+    public function returnUrl();
+
+    /**
+     * 支付成功后台回调
+     * 回调地址格式 notify/{pay_way_name}/{account}
+     */
+    public function notifyUrl();
+
+
+    /**
+     * 关闭订单
+     * @param    string                   $out_trade_no 系统订单号
+     * @return
+     */
+    public function closeOrder($out_trade_no);
+
+    /**
+     * 订单查询
+     *     仅在付款成功时返回 true
+     *     订单详情通过 $pay->getError() 获取;
+     * @param    string                   $out_trade_no 系统订单号
+     * @return
+     */
+    public function orderQuery($out_trade_no);
+
+    /**
+     * 退款申请
+     * @param    string                   $out_trade_no 系统订单号
+     * @param    int                      $total_fee  订单总金额
+     * @param    int                      $refund_fee 退款金额
+     * @return
+     */
+    public function refund($out_trade_no, $total_fee, $refund_fee);
+
+    /**
+     * 退款查询
+     * @param    string                   $out_trade_no 系统订单号
+     * @return
+     */
+    public function refundQuery($out_trade_no);
+
+    /**
+     * APP支付所需参数
+     * @return   array
+     */
+    public function app();
+
+    /**
+     * PC 浏览器支付
+     * @return   array
+     */
+    public function web();
+
+    /**
+     * 手机浏览器支付
+     * @return   array
+     */
+    public function mobile();
+}

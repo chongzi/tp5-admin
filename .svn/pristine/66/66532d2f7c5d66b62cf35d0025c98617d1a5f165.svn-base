@@ -1,0 +1,148 @@
+<?php
+namespace base;
+
+//多维数组
+class Lists 
+{
+	
+	//排序
+	//$list：多维数组
+	//str_sort：如'name desc,id asc'
+	public static function sort($list,$str_sort='')
+	{
+		if(!$str_sort)
+			return $list;
+		$arr_sort = explode(",",$str_sort);
+		foreach ($arr_sort as $row) 
+		{
+			$temp = explode(" ",$row);
+			$arr_sort_key[] = $temp[0];
+			if($temp[1] == "desc")
+				$type = SORT_DESC;
+			else
+				$type = SORT_ASC ;
+			$arr_sort_type[] = $type;
+		}
+		foreach ($list as $key => $row)
+	    {
+	    	$i = 0;
+	    	foreach ($arr_sort_key as $r) 
+	    	{
+	    		$arr[$i][] = $row[$r];
+	    		$i++;
+	    	}
+	    }
+	    $count = count($arr);
+	    if( $count == 1)
+	    {
+	    	array_multisort($arr[0],$arr_sort_type[0],$list);
+	    }
+	    else if( $count == 2)
+	    {
+	    	array_multisort($arr[0],$arr_sort_type[0],$arr[1],$arr_sort_type[1],$list);
+	    }
+	    else if( $count == 3)
+	    {
+	    	array_multisort($arr[0],$arr_sort_type[0],$arr[1],$arr_sort_type[1],$arr[2],$arr_sort_type[2],$list);
+	    }
+	    return $list;
+	}
+
+	//将某一列的值转成用符号(如英文逗号)隔开的字符串
+	public static function val_implode($list,$key,$char=',')
+	{
+		if(!$list == null)
+			return "";
+		$arr = array_column($list,$key);
+		if($arr)
+			return implode($char,$arr) ;
+		else
+			return "";
+	}
+
+	//创建一个新的数组，用某一列的值作为键，另外一列的值作为值
+	//$column_key:要作为键的列，如'id'
+	//$column_val:要作为值的列，如'name'
+	public static function create_arr_by_column($list,$column_key,$column_val)
+	{
+		if(!$list)
+			return $list;
+
+		$arr_key = array_column($list,$column_key);
+		$arr_val = array_column($list,$column_val);
+
+		for($i=0;$i<count($arr_key);$i++)
+		{
+			$arr[$arr_key[$i]] = $arr_val[$i];
+		}
+		return $arr;
+	}
+
+	//通过另外一列的键值获取某列的值
+	public static function get_val_by_other_column($list,$column_key,$other_column_key,$other_column_val)
+	{
+		if($list)
+		{
+			foreach ($list as $row) 
+			{
+				if($row[$other_column_key] == $other_column_val)
+				{
+					$res = $row[$column_key];
+					break;
+				}
+			}
+		}
+		return $res;
+	}
+
+	/**
+   	*过滤掉重复的内容，过滤条件为列的值
+   	*@keys，列的key,多个用英文逗号隔开，如：id,name
+   	*/
+	public static function unique_by_keys($list,$str_keys)
+   	{
+   		$keys = explode(",", $str_keys);
+       	$arr_keys =array(); 
+       	if($list)
+       	{
+       		foreach($list as $row)
+	       	{
+	       		$arr_val = null;
+	       		foreach($keys as $key)
+	       		{
+	       			$arr_val[] = $row[$key];
+	       		}
+	       		$new_key = implode("_", $arr_val);
+	            if(!in_array($new_key, $arr_keys))
+	            {
+	                $arr_keys[] = $new_key; //以key_out作为外部数组的键  
+	                $res[] = $row;
+	            }
+	       	}
+       	}
+       	
+       	return $res;  
+   	} 
+
+   	/**
+   	*返回列
+   	*@keys，列的key,多个用英文逗号隔开，如：id,name
+   	*/
+   	public static function columns($list,$str_keys)
+   	{
+   		$keys = explode(",", $str_keys);
+   		if($list)
+   		{
+   			foreach ($list as $row) 
+   			{
+   				foreach ($keys as $key) 
+				{
+					$myrow[$key] = $row[$key];
+				}
+				$mylist[] = $myrow;
+   			}
+   		}
+   		
+   		return $mylist;
+   	}
+}

@@ -1,0 +1,57 @@
+{extend name="layout/common" /}
+
+{block name="header"}
+<section class="content-header">
+    <h1>
+        评论管理
+    </h1>
+</section>
+{/block}
+
+{block name="body"}
+<div class="row">
+    <div class="col-xs-12">
+        
+        <div class="box box-success">
+            <div class="box-header">
+                <form method="get" action="{:url('index')}" id="search"  role="form" class="form-inline">
+                    <input  type="text" name="title" value="{$search.title}" placeholder="请输入你要查找的内容" class="form-control"/>
+                    <a class="btn btn-success btn-sm"  href="javascript:$('#search').submit();" id="search" >搜  索</a>
+                </form>
+            </div>
+            <form method="POST" id="form_list" name="form_list">
+                <div class="box-body">
+                    <table class="table table-hover table-bordered">
+                        <tr>
+                            <th ><input id="all"   type="checkbox"  onclick="chk_all()" /></th>
+                            <th class="">id</th>
+                            <th class="">标题</th>
+                            <th class="">内容</th>
+                            <th class="">所属文章</th>
+                            <th class="">操作</th>
+                        </tr>
+                        {volist name="list" id="vo"}
+                        <tr>
+                            <td>
+                                <input class="check-all" type="checkbox"  value="{$vo.id}" name="id[]" />
+                            </td>
+                            <td>{$vo.id}</td>
+                            <td>{$vo.title}</td>
+                            <td>{$vo.content}</td>
+                            <td>{$vo.news_title}</td>
+                            <td>
+                                <a href="javascript:drop_confirm('您确定要删除吗?','{:url('del?id='.$vo['id'])}')" >删除</a>
+                            </td>
+                        </tr>
+                        {/volist}
+                    </table>
+                </div>
+                <div class="box-header" style="padding-bottom:20px;">
+                    
+                    <a class="btn btn-success btn-sm" onclick="form_submit('form_list','{:url('del')}','您确定删除吗？')">删除</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{/block}

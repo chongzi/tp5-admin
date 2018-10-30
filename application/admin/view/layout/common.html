@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+{include file="partials/htmlheader" /} 
+{block name="style"}{/block}    
+</head>
+
+<body class="skin-blue sidebar-mini">
+<div class="wrapper">
+    {include file="partials/common_components" /}
+
+    {include file="partials/mainheader" /} 
+
+    {include file="partials/sidebar" /} 
+
+    <div class="content-wrapper">
+
+        {block name="header" /}{include file="partials/contentheader" /}{/block}
+
+        <section class="content">
+            {block name="body"}{/block}
+        </section>
+    </div>
+
+    {include file="partials/footer" /}
+
+</div>
+{include file="partials/scripts" /}
+
+{block name="script"}{/block}
+</body>
+</html>

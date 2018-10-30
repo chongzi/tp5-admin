@@ -1,0 +1,65 @@
+{extend name="layout/common" /}
+
+{block name="header"}
+<section class="content-header">
+    <h1>
+        用户组
+    </h1>
+</section>
+{/block}
+
+{block name="body"}
+<div class="row">
+<div class="col-xs-12">
+<div class="box box-success">
+    <div class="box-header">
+        <a href="{:url('admin/group/create')}" type="button" class="btn btn-success btn-sm">添加<i class="fa fa-fw fa-plus"></i></a>
+    </div>
+    
+    <div class="box-body">
+        <table class="table table-hover table-bordered">
+            <tr>
+                <th><input type="checkbox" class="checkbox check-all"></th>
+                <th>ID</th>
+                <th>用户组名称</th>
+                <th>描述</th>
+                <th>授权</th>
+                <th>状态切换</th>
+                <th>操作</th>
+            </tr>
+            {volist name="groups" id="group"}
+            <tr>
+                <td><input type="checkbox" class="checkbox"></td>
+                <td>{$group.id}</td>
+                <td>{$group.title}</td>
+                <td>{$group.description}</td>
+                <td>
+                    <a href="{:url('admin/AuthManager/action', ['id'=>$group['id']])}" class="label label-success">访问授权</a>
+                    <a href="{:url('admin/AuthManager/user', ['id'=>$group['id']])}" class="label label-success">成员授权</a>
+                </td>
+                <td>
+                    {eq name="group.status" value="-1"} {$group->statusText()} {/eq}
+                    {eq name="group.status" value="1"}
+                    <a href="{:url('admin/group/forbid', ['id'=>$group['id']])}" class="label label-success confirm get">{$group->statusText()}</a>
+                    {/eq}
+                    {eq name="group.status" value="0"}
+                    <a href="{:url('admin/group/allow', ['id'=>$group['id']])}" class="label label-danger ajax-get">{$group->statusText()}</a>
+                    {/eq}
+                </td>
+                <td>
+                    <a href="{:url('admin/group/edit', ['id'=>$group['id']])}" class="label label-success">编辑</a>
+                    <a href="{:url('admin/group/delete', ['id'=>$group['id']])}" class="label label-danger confirm delete">删除</a>
+                </td>
+            </tr>
+            {/volist}
+            
+        </table>
+    </div>
+
+    <div class="box-footer clearfix">
+        {$groups->render()}
+    </div>
+</div>
+</div>
+</div>
+{/block}

@@ -1,0 +1,97 @@
+{extend name="layout/common" /}
+
+{block name="header"}
+<section class="content-header">
+    <h1>
+        登录日志
+    </h1>
+</section>
+{/block}
+
+{block name="body"}
+<div class="row">
+    <div class="col-xs-12">
+        
+        <div class="box box-success">
+            <div class="box-header">
+                <form method="get" action="{:url('index')}" id="search" role="form" class="form-inline">
+                    <select id="stype" name="stype" style="width:130px;" class="form-control">
+                        <option value="0">请选择</option>
+                        <option value="1">用户id</option>
+                        <option value="2">用户名</option>
+                        <option value="3">用户手机</option>
+                    </select>
+                    <script>set_val("stype","{$search.stype}");</script>
+                    <input type="text" name="sval" value="{$search.sval}" placeholder="请输入你要查找的内容" class="form-control"/>
+                    <input type="text" id="start_time" name="start_time" value="{$search.start_time}" placeholder="内容添加时间" class="form-control"/>
+                    <input type="text" id="end_time" name="end_time" value="{$search.end_time}" placeholder="内容添加时间" class="form-control"/>
+                    <a class="btn btn-success btn-sm"  href="javascript:$('#search').submit();" id="search" >搜  索</a>
+                </form>
+            </div>
+            <form method="POST" id="form_list" name="form_list">
+                <div class="box-body">
+                    <table class="table table-hover table-bordered">
+                        <tr>
+                            <th ><input id="all"   type="checkbox"  onclick="chk_all()" /></th>
+                            <th class="">id</th>
+                            <th class="">用户id</th>
+                            <th class="">昵称</th>
+                            <th class="">图像</th>
+                            <th class="">ip</th>
+                            <th class="">登录时间</th>
+                            <!-- <th class="">操作</th> -->
+                        </tr>
+                        {volist name="list" id="vo"}
+                        <tr>
+                            <td>
+                                <input class="check-all" type="checkbox"  value="{$vo.id}" name="id[]" />
+                            </td>
+                            <td>{$vo.id}</td>
+                            <td>{$vo.user_id}</td>
+                            <td>{$vo.nick_name}</td>
+                            <td><img src="{$vo.face}" style="width:40px"/></td>
+                            <td>{$vo.ip}</td>
+                            <td>{:date('Y-m-d H:i:s',$vo['add_time'])}</td>
+<!--                             <td>
+                                <a href="{:url('edit?id='.$vo['id'])}" >编辑</a>&nbsp;&nbsp;&nbsp;&nbsp;
+                                <a href="javascript:drop_confirm('您确定要删除吗?','{:url('del?id='.$vo['id'])}')" >删除</a>
+                            </td> -->
+                        </tr>
+                        {/volist}
+                    </table>
+                </div>
+                <div class="h_pagination" style="padding-top: 15px;">
+                    {$page_html}
+                </div>
+                <div class="box-header" style="padding-bottom:20px;">
+                   
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    $('#start_time').datetimepicker({
+        format: 'yyyy-mm-dd',
+        language:"zh-CN",
+        minView:2,
+        autoclose:true
+    });
+    $('#end_time').datetimepicker({
+        format: 'yyyy-mm-dd',
+        language:"zh-CN",
+        minView:2,
+        autoclose:true
+    });
+    $('#datetimepicker').datetimepicker({
+        format: 'yyyy-mm-dd',
+        language:"zh-CN",
+        minView:2,
+        autoclose:true,
+        pickerPosition:'bottom-left'
+    });
+});
+</script>
+{/block}

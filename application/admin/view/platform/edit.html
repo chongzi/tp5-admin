@@ -1,0 +1,125 @@
+{extend name="layout/common" /} {block name="header"} {/block} {block name="body"}
+<div class="row">
+    <div class="col-md-12">
+        <div class="box box-success">
+            <div class="box-header with-border">
+            </div>
+            <form method="post" action="{:Url('updImg')}" enctype="multipart/form-data" role="form" class="form-inline">
+                <table class="table table-hover table-bordered">
+                    <tbody>
+                        <tr>
+                            <td colspan="3">
+                                <h3>编辑礼品</h3></td>
+                            </tr>
+                            <tr>
+                                <td width="200px">应用名称：</td>
+                                <td>
+                                    {notempty name="info.id"}
+                                    <input type="hidden" name="id" value="{$info['id']}" />{/notempty}
+                                    <input name="name" size="16" type="text" value="{$info['name']}"  class="form-control" style="width: 400px;" />
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td>图标上传：(bootstrap 插件上传)</td>
+                                <td>
+                                    <input size="16" type="file" name="ico" id="ico" class="form-control" /> {if condition=" !empty($info['ico']) "}
+                                    <img src="{$info.ico}" width="100" class="ico">
+                                    <input type="hidden" name="ico" value="{$info.ico}" id="ico" /> {/if}
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td width="200">点击数：</td>
+                                <td>
+                                    <input name="click_num" size="16" type="text" value="{$info['click_num']}"  class="form-control" style="width: 400px;" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td width="200">appid：</td>
+                                <td>
+                                    <input name="appid" size="16" type="text" value="{$info['appid']}"  class="form-control" style="width: 400px;" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td width="200">appsecret：</td>
+                                <td>
+                                    <input name="appsecret" size="16" type="text" value="{$info['appsecret']}"  class="form-control" style="width: 400px;" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td width="200">排序：</td>
+                                <td>
+                                    <input name="sort" size="16" type="text" value="{$info['sort']}"  class="form-control" style="width: 400px;" />
+                                </td>
+                            </tr>
+
+                        </tbody>
+                    </table>
+                    <div class="row-fluid" style="margin-top: 20px;margin-left: 200px;padding-bottom:20px;">
+                        {notempty name="info.id"}
+                        <input type="hidden" name="id" value="{$info['id']}" />{/notempty}
+                        <button class="btn btn-primary" type="submit">提交</button>
+                        <button class="btn" type="reset" style="margin-left: 30px;">取消</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {/block} {block name="script"}
+    <script type="text/javascript" src="/static/plupload-2.1.2/js/plupload.full.min.js"></script>
+    <script type="text/javascript" src="/static/plupload-2.1.2/js/upload2.js"></script>
+    <script>
+        $("#ico").fileinput({
+    language: 'zh', //设置语言
+
+    uploadUrl:"http://admin.tp5demo.com/uploads", //上传的地址
+
+    allowedFileExtensions: ['jpg', 'gif', 'png'], //接收的文件后缀
+
+    //uploadExtraData:{"id": 1, "fileName":'123.mp3'},
+
+    uploadAsync: false, //默认异步上传
+
+    showUpload: false, //是否显示上传按钮
+
+    showRemove: true, //显示移除按钮
+
+    showPreview: true, //是否显示预览
+
+    showCaption: false, //是否显示标题
+
+    browseClass: "btn btn-primary", //按钮样式    
+
+    dropZoneEnabled: false, //是否显示拖拽区域
+
+    //minImageWidth: 50, //图片的最小宽度
+
+    //minImageHeight: 50,//图片的最小高度
+
+    //maxImageWidth: 1000,//图片的最大宽度
+
+    //maxImageHeight: 1000,//图片的最大高度
+
+    //maxFileSize:0,//单位为kb，如果为0表示不限制文件大小
+
+    //minFileCount: 0,
+
+    maxFileCount: 10, //表示允许同时上传的最大文件个数
+
+    enctype: 'multipart/form-data',
+
+    validateInitialCount: true,
+
+    previewFileIcon: "<iclass='glyphicon glyphicon-king'></i>",
+
+    msgFilesTooMany: "选择上传的文件数量({n}) 超过允许的最大数值{m}！",
+
+}).on("fileuploaded", function(event, data, previewId, index) {
+    console.log(data);
+});
+$("#voice").fileinput({
+    language: 'zh', //设置语言
+});
+</script>
+{/block}

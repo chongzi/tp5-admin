@@ -1,0 +1,77 @@
+{extend name="layout/common" /}
+
+{block name="header"}
+<section class="content-header">
+    <h1>
+        更多玩法
+    </h1>
+</section>
+{/block}
+
+{block name="body"}
+<div class="row">
+    <div class="col-xs-12">
+
+        <div class="box box-success">
+            <div class="box-header">
+                <form method="get" action="{:url('index')}" id="search" role="form" class="form-inline">
+                    <input  type="text" name="title" value="{$search.title}" placeholder="请输入你要查找的id" class="form-control"/>
+                    
+                    <a class="btn btn-success btn-sm"  href="javascript:$('#search').submit();" id="search" >搜  索</a>
+                </form>
+            </div>
+            <form method="POST" id="form_list" name="form_list">
+                <div class="box-body">
+                    <table class="table table-hover table-bordered">
+                        <tr>
+                            <th ><input id="all"   type="checkbox"  onclick="chk_all()" /></th>
+                            <th class="">id</th>
+                            <th class="">游戏名称</th>
+                            <th class="">图标</th>
+                            <th class="">简介</th>
+                            <th class="">按钮名称</th>
+                            <th class="">跳转</th>
+                            <th class="">添加时间</th>
+                            <th class="">排序</th>
+                            <th class="">操作</th>
+                        </tr>
+                        {volist name="list" id="vo"}
+                        <tr>
+                            <td>
+                                <input class="check-all" type="checkbox"  value="{$vo.id}" name="id[]" />
+                            </td>
+                            <td>{$vo.id}</td>
+                            <td>{$vo.name}</td>
+                            <td>
+                                {if condition=" !empty($vo['img']) "}
+                                <img class="imgUpload" src="{$vo.img}" height="40" data-id="{$vo.id}">
+                                {else/}
+                                <img class="imgUpload" src="/Public/Admin/images/none.jpg" height="40" data-id="{$vo.id}">
+                                {/if}
+                            </td>
+                            <td>{$vo.desc}</td>
+                            <td>{$vo.button_name}</td>
+                            <td>{$vo.url}</td>
+                            <td>{$vo.add_time|date="Y-m-d H:i",###}</td>
+                             <td><input type="text" name="sort[{$vo.id}]" value="{$vo.sort}" onblur="sort($(this).val(),{$vo.id})"" class="form-control" style="width:100px"/></td>
+                            <td>
+                                <a href="{:url('edit?id='.$vo['id'])}" class="label label-success">编辑</a>&nbsp;&nbsp;&nbsp;&nbsp;
+                                <a href="javascript:drop_confirm('您确定要删除吗?','{:url('del?id='.$vo['id'])}')" style="margin-left:10px;"  class="label label-danger">删除</a>
+                            </td>
+                        </tr>
+                        {/volist}
+                    </table>
+                </div>
+    
+                <div class="box-header" style="padding-bottom:20px;">
+                    <a href="{:url('edit')}" type="button" class="btn btn-success btn-sm">添加<i class="fa fa-fw fa-plus"></i></a>
+                    <a class="btn btn-success btn-sm" onclick="form_submit('form_list','{:url('updSort')}','您确定更新排序吗？')">更新排序</a>
+                    <a class="btn btn-success btn-sm" onclick="form_submit('form_list','{:url('del')}','您确定删除吗？')">删除</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+</script>
+{/block}

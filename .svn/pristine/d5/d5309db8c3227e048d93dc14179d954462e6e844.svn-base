@@ -1,0 +1,529 @@
+<?php
+namespace app\admin\model;
+
+use think\Model;
+use think\Db;
+class BaseModel extends Model
+{
+    private $model = null ;
+	protected $class = null ;
+
+	protected function initialize($model='',$class='')
+    {
+    	$this->model = $model;
+    	$this->class = $class ;
+    }
+
+    /**   
+    * 根据条件来检索数据，并排序分页 
+    * 
+    * @access public 
+    * @param $where array 搜索条件
+    * @param $order string 排序字段，多个用英文逗号隔开，如'id desc,name asc'
+    * @param $page int 页码
+    * @param $page_size int 每页显示记录数
+    * @param $count int 总记录数
+    * @return array 符合条件的数据集
+    */  
+    public function search($where=null,$order='id desc',$page=1,$page_size=1000,&$count)
+    {
+        foreach ($where as $key => $value) 
+        {
+            if(!$value)
+            {
+                unset($where[$key]);
+            }
+        }
+
+    	$limit = ($page-1)*$page_size;
+    	$m = new $this->class();
+        $res = $m->where($where)->limit($limit,$page_size)->order($order)->select(); 
+
+        if($res)
+            return collection($res)->toArray();
+        else
+            return null;
+    }
+
+    /**   
+    * 根据id来获取单条记录
+    * 
+    * @access public 
+    * @param $id int 
+    * @param $field string 要获取的字段，多个用英文逗号隔开，如'id,name'
+    * @param $order string 排序字段，多个用英文逗号隔开，如'id desc,name asc'
+    * @return array 符合条件的单条记录
+    */ 
+    public function info($id,$field='',$order='',$is_lock=false)
+    {
+        $where["id"] = $id;
+        $res = $this->infoBy($where,$field,$order,$is_lock);
+        return $res;
+    }
+
+    /**   
+    * 根据条件来获取单条记录 
+    * 
+    * @access public 
+    * @param $where array 搜索条件
+    * @param $field string 要获取的字段，多个用英文逗号隔开，如'id,name'
+    * @param $order string 排序字段，多个用英文逗号隔开，如'id desc,name asc'
+    * @return array 符合条件的单条记录
+    */ 
+    public function infoBy($where,$field='',$order='',$is_lock=false)
+    {
+        $m = new $this->class;
+
+        if($field)
+        {
+            $res = $m->lock($is_lock)->where($where)->field($field)->order($order)->find(); 
+        }
+        else
+        {
+            $res = $m->lock($is_lock)->where($where)->find(); 
+        }
+        if($res)
+            return $res->toArray();
+        else
+            return null;
+    }
+
+    /**   
+    * 根据ids(一个或多个id)来获取数据集
+    * 
+    * @access public 
+    * @param $ids int/string/array 单个(如1，或'1'，或[1])或多个id值(如'1,2'，或[1,2])
+    * @param $field string 要获取的字段，多个用英文逗号隔开，如'id,name'
+    * @param $limit int 要获取的数据数量
+    * @param $order string 排序字段，多个用英文逗号隔开，如'id desc,name asc'
+    * @return array 符合条件的数据集
+    */
+    public function listByIds($ids,$field='',$limit=1000,$order='id desc')
+    {
+        $where["id"] = array('in',$ids);
+        $res =  $this->listBy($where,$field,$limit,$order);
+        return $res;
+    }
+
+    /**   
+    * 根据条件来获取数据集
+    * 
+    * @access public 
+    * @param $where array 搜索条件
+    * @param $field string 要获取的字段，多个用英文逗号隔开，如'id,name'
+    * @param $limit int 要获取的数据数量
+    * @param $order string 排序字段，多个用英文逗号隔开，如'id desc,name asc'
+    * @return array 符合条件的数据集
+    */
+    public function listBy($where=null,$field='',$limit=1000,$order='id desc')
+    {
+        //$m = new News();
+        $m = new $this->class();
+        if($field)
+        {
+            $res = $m->where($where)->limit($limit)->order($order)->field($field)->select(); 
+        }
+        else
+        {
+            $res = $m->where($where)->limit($limit)->order($order)->select();
+        }
+
+        if($res)
+            return collection($res)->toArray();
+        else
+            return null;
+    }
+
+    /**   
+    * 根据条件来获取数据集
+    * 
+    * @access public 
+    * @param $where array 搜索条件
+    * @param $field string 要获取的字段，多个用英文逗号隔开，如'id,name'
+    * @param $limit int 要获取的数据数量
+    * @param $page int 页码 
+    * @param $order string 排序字段，多个用英文逗号隔开，如'id desc,name asc'
+    * @return array 符合条件的数据集
+    */
+    public function listPageBy($where=null,$field='',$page=1,$page_size=1000,$order='id desc')
+    {
+        $offset=$page_size*($page - 1);
+        //$m = new News();
+        $m = new $this->class();
+        if($field)
+        {
+            $res = $m->where($where)->limit($offset,$page_size)->order($order)->field($field)->select(); 
+        }
+        else
+        {
+            $res = $m->where($where)->limit($offset,$page_size)->order($order)->select();
+        }
+
+        if($res)
+            return collection($res)->toArray();
+        else
+            return null;
+    }
+
+    /**   
+    * 添加单条记录
+    * 
+    * @access public 
+    * @param $data array 数据集
+    * @return array 数据集，包含id
+    */
+    public function add($data,$method='')
+    {
+        if(!$data)
+            $data = $_POST;
+        if(!$data)
+            return false;
+        if($method)
+        {
+            $data = $this->$method($data);
+        }
+        $m = new $this->class;
+        //$res = $m->validate(true)->allowField(true)->isUpdate(false)->save($data);
+        $res = $m->allowField(true)->isUpdate(false)->save($data);
+        if($res === false)
+        {
+            $this->error = $m->getError();
+            return false;
+        }
+        $res = $m->toArray();
+        return $res;
+    }
+
+    /**   
+    * 批量添加
+    * 
+    * @access public 
+    * @param $data array 数据集
+    * @return array 数据集
+    */
+    public function adds($list,$method='')
+    {
+        if(!$list)
+            return false;
+        /*if($method)
+        {
+            $list = $this->$method($list);
+        }*/
+        $m = new $this->class;
+        $res = $m->validate(true)->allowField(true)->saveAll($list,false);//false表示为新增
+        //$res = $m->allowField(true)->saveAll($list,false);//false表示为新增
+        $res = collection($res)->toArray();
+        return $res;
+    }
+
+    /**   
+    * 更新单条记录
+    * 
+    * @access public 
+    * @param $data array 数据集
+    * @return int 返回影响行数，失败返回false
+    */
+    public function upd($data,$method='')
+    {
+        if(!$data)
+            $data = $_POST;
+        if(!$data)
+            return false;
+        if($method){
+            if(is_string($method))
+            {
+                $data = $this->$method($data);
+            }else{
+                $data = $method($data);
+            }
+        }
+        $m = new $this->class;
+        $res = $m->validate(true)->allowField(true)->isUpdate(true)->save($data);
+        //$res = $m->allowField(true)->isUpdate(true)->save($data);
+        if($res === false)
+        {
+            $this->error = $m->getError();
+            return false;
+        }
+        return $res;
+    }
+
+    /**   
+    * 批量更新
+    * 
+    * @access public 
+    * @param $list array 数据集
+    * @return int 返回影响行数，失败返回false
+    */
+    public function upds($list,$method='')
+    {
+        if(!$list)
+            return false;
+        if($method)
+        {
+            $data = $this->$method($data);
+        }
+        $m = new $this->class;
+        $res = $m->allowField(true)->saveAll($list,true);//false表示为新增
+        return $res[0]->data;
+    }
+
+    /**   
+    * 批量更新某一个属性的值
+    * 
+    * @access public 
+    * @param $ids int/string/array 单个(如1，或'1'，或[1])或多个id值(如'1,2'，或[1,2])
+    * @param $field_name string 字段名称(如：'status')
+    * @param $field_val 字段值(如：'1')
+    * @return int 返回影响行数，失败返回false
+    */
+    public function updAttr($ids,$field_name,$field_val)
+    {
+        if(is_array($ids))
+        {
+            $where['id'] = array('in',implode(',',$ids));
+        }
+        else
+        {
+            $where['id'] = array('in',$ids);
+        }
+        $data[$field_name] = $field_val;
+
+        return $this->updBy($data, $where);
+    }
+
+    /**   
+    * 根据条件来批量更新记录
+    * 
+    * @access public 
+    * @param $data array 数据集，如['name'=>'zms','age'=>18]
+    * @param $where 更新条件，如['id'=>1]
+    * @return int 返回影响行数，失败返回false
+    */
+    public function updBy($data, $where)
+    {
+        //$m = new News;
+        $m = new $this->class;
+        $res = $m->allowField(true)->save($data,$where);
+        return $res;
+    }
+
+    /**   
+    * 根据单个id或多个id来删除
+    * 
+    * @access public 
+    * @param $ids int/string/array 单个(如1，或'1'，或[1])或多个id值(如'1,2'，或[1,2])
+    * @return int 返回影响行数
+    */
+    public function del($ids)
+    {
+        //return News::destroy($ids);
+        $m = new $this->class;
+        return $m::destroy($ids);
+    }
+
+    /**   
+    * 根据条件来删除
+    * 
+    * @access public 
+    * @param $where array 条件
+    * @return int 返回影响行数
+    */
+    public function delBy($where)
+    {
+        //return News::destroy($where);
+        $m = new $this->class;
+        return $m::destroy($where);
+    }
+
+    /**   
+    * 根据条件统计数量
+    * 
+    * @access public 
+    * @param $where array 条件
+    * @param $field string 字段名，如"name"，或者"distinct name"
+    * @return int 数量
+    */
+    public function countBy($where='',$field)
+    {
+    	$m = new $this->class;
+        if($where)
+        {
+            return $m::where($where)->count($field);    
+        }
+        else
+        {
+            return $m::count($field);
+
+        }
+    }
+
+    /**   
+    * 根据条件统计最大值
+    * 
+    * @access public 
+    * @param $where array 条件
+    * @param $field string 字段名，如"score"，必须为数值类型
+    * @return 数值 获取最大值
+    */
+    public function maxBy($where,$field)
+    {
+    	$m = new $this->class;
+        if($where)
+        {
+            return $m::where($where)->max($field);    
+        }
+        else
+        {
+            return $m::max($field);
+        }
+    }
+
+    /**   
+    * 根据条件统计最小值
+    * 
+    * @access public 
+    * @param $where array 条件
+    * @param $field string 字段名，如"score"，必须为数值类型
+    * @return 数值类型 获取最小值
+    */
+    public function minBy($where,$field)
+    {
+    	$m = new $this->class;
+        if($where)
+        {
+            return $m::where($where)->min($field);    
+        }
+        else
+        {
+            return $m::min($field);
+        }
+    }
+
+    /**   
+    * 根据条件获取平均值
+    * 
+    * @access public 
+    * @param $where array 条件
+    * @param $field string 字段名，如"score"，必须为数值类型
+    * @return int 数值类型
+    */
+    public function avgBy($where,$field)
+    {
+    	$m = new $this->class;
+        if($where)
+        {
+            return $m::where($where)->avg($field);    
+        }
+        else
+        {
+            return $m::avg($field);
+        }
+    }
+
+    /**   
+    * 根据条件求和
+    * 
+    * @access public 
+    * @param $where array 条件
+    * @param $field string 字段名，如"score"，必须为数值类型
+    * @return int 求和
+    */
+    public function sumBy($where,$field)
+    {
+    	$m = new $this->class;
+        if($where)
+        {
+            return $m::where($where)->sum($field);    
+        }
+        else
+        {
+            return $m::sum($field);
+        }
+    }
+
+    public function inc($where,$field_name,$field_val=1)
+    {
+        $m = new $this->class;
+        return $m->where($where)->setInc("point",$field_val);
+    }
+
+    public function dec($where,$field_name,$field_val)
+    {
+
+        $m = new $this->class;
+        return $m->where($where)->setDec($field_name,$field_val);
+    }
+
+    /**   
+    * 获取所有表名
+    * 
+    * @access public 
+    * @return array 获取所有表名
+    */
+    public function tableList()
+    {
+        $m = new $this->class;
+        $res = $m->query('SHOW TABLES');
+        return $res;
+    }
+
+    /**   
+    * 上传文件
+    * 
+    * @access public 
+    * @param $name string 文件对应表单名称
+    * @param $dir string 文件保存的文件夹：文件保存地址为/public/uploads/{dir}/{yyyymmdd}/{file_name}
+    * @param $limit array 文件类型限制和大小限制，如["ext"="jpg,png,bmp","size"=102400]
+    * @param @thumb array 缩略图设置信息
+    * @return 返回图片信息
+    */
+    public function upload($name,$dir='images',$limit=null,$thumb=null)
+    {
+        $domain = config("myconfig.domain");
+        if(!$domian){
+            $domain = $_SERVER["HTTP_HOST"];
+        }
+        $f = request()->file($name);
+        if($f)
+        {
+            if(is_array($f))
+                $files = $f;
+            else
+                $files[] = $f;
+            foreach($files as $file)
+            {
+                $dir = 'uploads/'.$dir.'/';
+                $save_dir = ROOT_PATH.'public/'.$dir;
+                if($limit)
+                    $info = $file->validate($limit)->move($save_dir);
+                else
+                    $info = $file->move($save_dir);
+                if($info)
+                {
+                    $save_name = str_replace("\\", "/", $info->getSaveName()) ;
+                    $myfile["path"] = "/".$dir.$save_name;
+                    $myfile["url"] = "http://".$domain.$myfile["path"];
+
+                    //生成缩略图
+                    if($thumb)
+                    {
+                        $thumb_save_name = str_replace(".".$info->getExtension(), "_s.".$info->getExtension(), $info->getSaveName()) ;
+                        $thumb_save_name = str_replace("\\", "/", $thumb_save_name) ;
+                        $thumb_save_path = $save_dir."/".$thumb_save_name;
+                        $image = \think\Image::open($file);
+                        $image->crop($thumb["width"],$thumb["height"])->save($thumb_save_path);
+                        $myfile["thumb_path"] ="/".$dir.$thumb_save_name;
+                        $myfile["thumb_url"] = "http://".$domain.$myfile["thumb_path"];
+                    }
+                    $res[] = $myfile;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+        return $res;
+    }
+}

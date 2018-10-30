@@ -1,0 +1,96 @@
+{extend name="layout/common" /}
+
+{block name="header"}
+<section class="content-header">
+    <h1>
+        渠道管理
+    </h1>
+</section>
+{/block}
+
+{block name="body"}
+<div class="row">
+    <div class="col-xs-12">
+        
+        <div class="box box-success">
+            <div class="box-header">
+                <form method="get" action="{:url('index')}" id="search" role="form" class="form-inline">
+                    <input  type="text" name="title" value="{$search.title}" placeholder="请输入你要查找的内容" class="form-control"/>
+                    
+                    <a class="btn btn-success btn-sm"  href="javascript:$('#search').submit();" id="search" >搜  索</a>
+                </form>
+            </div>
+            <form method="POST" id="form_list" name="form_list">
+                <div class="box-body">
+                    <table class="table table-hover table-bordered">
+                        <tr>
+                            <th class="row-selected row-selected">
+                                <input id="all" type="checkbox"  onclick="chk_all()" checked/>
+                            </th>
+                            <th>编号</th>
+                            <th>一级渠道</th>
+                            <th>二级渠道</th>
+                            <th>渠道类别</th>
+                            <th>登录账号</th>
+                            <th>手机</th>
+                            <th>分成比例</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                        {volist name="list" id="vo"}
+                        <tr>
+                            <td>
+                            <input class="check-all" type="checkbox" data-id="{$vo.id}"  value="{$vo.id}" name="id[]" checked />
+                            </td>
+                            <td>{$vo.id}</td>
+                            <td class="option" data-id="{$vo.id}" style="cursor: pointer;">
+                            {if condition="$vo['pid'] >0 "}{$agents[$vo['pid']]}{else/}{$vo.title}{/if}
+                            </td>
+                            <td class="option" data-id="{$vo.id}" style="cursor: pointer;">{$vo.title}</td>
+                            <td class="option" data-id="{$vo.id}" style="cursor: pointer;">{$opt_fee_type[$vo['fee_type']]}</td>
+                            <td>{$vo.name}</td>
+                            <td>{$vo.mobile}</td>
+                            <td><input class="inner" type="text" name="rate[]" value="{$vo.rate|toPercent}"/>%</td>
+                            <td>{$opt_status[$vo['status']]}</td>
+                            <td>
+<!--                                 {if condition=" $vo['status'] == 2"}
+                                <a href="javascript:drop_confirm('您确定要解封吗?', '{:url('Agent/upd_status',array('status'=>1,'id'=>$vo['id']))}');">解封</a>
+                                {elseif condition=" $vo['status'] == 1"/}
+                                <a href="javascript:drop_confirm('您确定要封号吗?', '{:url('Agent/upd_status',array('status'=>2,'id'=>$vo['id']))}');">封号</a>
+                                {elseif condition=" $vo['status'] == 0"/}
+                                <a href="javascript:drop_confirm('您确定要通过审核吗?', '{:url('Agent/upd_status',array('status'=>1,'id'=>$vo['id']))}');">审核</a>
+                                {/if}
+                                &nbsp;&nbsp; -->
+                                <a href="{:url('Agent/edit',array('id'=>$vo['id']))}">编辑</a>
+                                &nbsp;&nbsp;
+<!--                                 <a href="javascript:drop_confirm('您确定要删除吗?', '{:url('Agent/upd_status',array('id'=>$vo['id'],'status'=>3))}');">删除</a>
+                                &nbsp;&nbsp;
+                                <a href="{:url('Agent/login',array('id'=>$vo['id']))}" target="_blank">登录该账号</a>
+                                &nbsp;&nbsp;
+                                <a href="{:url('AgentPayway/index',array('agent_id'=>$vo['id']))}" target="_blank">支付账号设置</a> -->
+                            </td>
+                        </tr>
+                        {/volist}
+                    </table>
+                </div>
+                <div class="box-header" style="padding-bottom:20px;">
+                    <a href="{:url('edit')}" type="button" class="btn btn-success btn-sm">添加<i class="fa fa-fw fa-plus"></i></a>
+
+                    <select name="flag_set" style="width:130px;display:inline;" onchange="form_submit('form_list','{:url('news/setFlag')}','您确定要设置标记吗？')" class="form-control">
+                        <option value="0">设置标记--</option>
+                        <option value="1">推荐</option>
+                        <option value="2">热门</option>
+                    </select>
+                    <select name="flag_unset" style="width:130px;display:inline;" onchange="form_submit('form_list','{:url('news/unsetFlag')}','您确定要进行此操作吗？')"  class="form-control">
+                        <option value="0">取消标记--</option>
+                        <option value="1">推荐</option>
+                        <option value="2">热门</option>
+                    </select>
+                    <a class="btn btn-success btn-sm" onclick="form_submit('form_list','{:url('updSort')}','您确定更新排序吗？')">更新排序</a>
+
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{/block}

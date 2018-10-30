@@ -1,0 +1,46 @@
+#alert {
+    position: fixed;
+    top: -10em;
+    left: 30%;
+    width: 40%;
+    z-index: 9999;
+    transition: 0.5s;
+}
+#alert.show {
+    top: 2em;
+}
+
+.pagination {
+    margin: 0 !important;
+}
+
+ul.auth-item {
+    list-style: none;
+}
+ul.auth-item li {
+    display:inline;
+    padding-left:1em;
+}
+
+td input.form-control[type=number] {
+    width: 5em;
+}
+
+td input.form-control[type=text] {
+    width: 15em;
+}
+
+select, input[type="file"] {
+    height: 26px;
+    line-height: 26px;
+}
+
+
+/*分页css开始*/
+.h_pagination{width: 100%;text-align: center;}
+.h_pagination a,.h_pagination span{    vertical-align: middle; zoom: 1; padding: 6px 10px; margin: 0 1px;    color: #666; background: #fff; border: #e4e4e4 1px solid;}
+
+.h_pagination a:hover{background-color: #292A2F;color: #fff;text-decoration: none;}
+.h_pagination .current {color: #292A2F!important; background: #e2e2e2; border-color: #a2a2a2; }
+/*分页css结束*/
+

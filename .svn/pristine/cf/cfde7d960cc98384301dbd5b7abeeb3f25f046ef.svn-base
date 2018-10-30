@@ -1,0 +1,29 @@
+<?php
+
+namespace Api\Server\Pay\Alipay\Aop;
+
+class Config
+{
+    public $gatewayUrl;
+    public $appId;
+    public $rsaPrivateKey;
+    public $alipayrsaPublicKey;
+    public $apiVersion;
+    public $postCharset;
+    public $format;
+    public $signType;
+    
+    public function __construct(){
+        $this->gatewayUrl = 'https://openapi.alipay.com/gateway.do';
+        $this->appId = '2017081608224296';
+        $this->rsaPrivateKey = 'MIIEpAIBAAKCAQEArnISUZ4Ax7m0G+AalnVHU9i1CxNA4vr5oFU/8dX0scpkyUw1DWKJocn239TvhmtIAcHf0slP7f+LS7v2m2Bnc9Kcch52HMvjYhlCOfdOFnTBnYAagnm7HAVamWlq2v6kvieWuh/13wK3Epj4/J8G0xH0IAElBjML6b5K/vUhLF5ZlcK9mv86XN+k6G7/iXraqW2XwtOUpdTIzPKV+BycuwIJAHOl/4BE2GCWZrPdh640axJjH56y733+WqaAyOqqpEBaWLAc/Rnal2Zd+IFTerVrdiXZr91NaFG1/2eC9Bs5geAgKVGjFvD3WyPOMZJ8L4wADMa/tpyVX0+awRfhAwIDAQABAoIBAQCtbGg7zamW5U5iHAQyqfs0Jw+tKAHs5Xc/ZyEACiWOjthtqp5fZSPQvRj6YxWQ+5yFarlaM5qLz+4qZ3397/RJGAtCBHiFnki6oMPPHsX52y8UpmM0bVKPw97S/xMlDdy30mGtPdLQV0GrcnqtomdFdObO3nRxWlQwl2a1WvsUwD98e4hw8WSl3QbJaoEBnQOx5UJa7H28lLqEHgb2Q+27049WoCunXKwsmKVls3NFXu/IimqokfeMQeMwpSKapL82LD+6j0AXOm2Lcr8tIZfv0Y4ZU/cBE4PguJLCMgvr5hk7hUcMDdiPFtv5q/RClWz66GzXOU1Sd8MkuK6sTBKZAoGBANTylbNRYVT5pDxwQsSyGIjMqDhBtDHn8owACjZGmh6Ib7eVuXpqsw2+fOvPWn6y1htZ65LvL/TZ2HhSDR4GZ62SMJjijmfuxhixtcxG6AKIP2Z0KhJ/U9PwsLWLP+EB//D/xIowwM2ywEhV4UMMKUum+6LcTY34r2kq0Uv1i46FAoGBANG2wlGy+rGhivTUuWehRli0GJC3kP4MKeLljrV3iuC+P/8XX/VWHRoVNNcKgM3bIEnqwixsb+OurAdRfRw1LjFaXHZR54ddfazWTkL9+dA/gMo0H7qkucjKEOJcXTwFrImxAj59WpqlXcZqu20Q3sXirMXxi+gxHm1IXzjkzVvnAoGAcAMefZF8Gj+qhWQjquVnhGXqwpTFHU89xSisNnqSzSbFZRMr2lnPz5X4je2nU2fsubxl7wdD+Y6xkDDQ149U7/cq+vCJKeBucUThNQ/DMLnMZ68JBmvVg3Fi8kvKESiFIZbYIjyc3lZ9UE9kS2lVO4cdbEBnxxsd4br1FviVLSUCgYBHqzqbaxwrqnZvl2dJWB9PXzTp+CHwAD4sUaFEuPbYOYxrZBSiJmzJpiepuegs8c8GE9mKDwDqAZ6+3YVxJ2eC7EufD/ydEUFK2O5kDKHcHmeoMsoJIhRv30aH5WLjiVjesYR/0J0vLoZusbkd298WJ5I+D39tuaOZW1tXeTIJTwKBgQCgTAUST0ZH4VBpV+Cg42b9b7ygxxgwh0ucF2cK7aM6A1In1CmPC3K3+fVQ212x+6K5X/dRRqPg3NlaYG27iD0wQXzrbZrrSUUnIK3T+tWyv/xQ7l1CeD9qvwfobQyilen3myDuwN8ARNeDPHR3TQKPDkCIQEqTTbJvwd5A9tMszw==';
+        $this->alipayrsaPublicKey='MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApeLiRNE6embeT2AN0N0IN5FOUzXeuIJ0BoKz467cMtCyx9YwmtTvd6w2fdMR3ui6MKwatG68v1kMDnq+54hH49JjRvymk3PuqcHtOb9nDxjizMSitr37TqQC3a1ZDJ+M6zLjHdwCGD0zY/IEhkm2xem3n2KXXXUsbUb29m0OogvubkZ39s/vGLeUZ1ILvnZm08180D/rbWTucEGq/geeeY1+H0iZzPEX6F4uKM+nVI2NxAdmaY7ydwJNbPRy35eodwzSTz8HkT1utpabZ8oxx3OCCSoIDvS+o5Wwaeqx50LHjvYEjFiRvTQlATb8/3uSk8EPC0TFfQUPesH/hRXohwIDAQAB';
+        $this->apiVersion = '1.0';
+        $this->postCharset='UTF-8';
+        $this->format='json';
+        $this->signType='RSA2';
+        
+        $this->notifyUrl = "http://h5.6071.com/notify/alipay";
+        $this->returnUrl = "http://h5.6071.com/return_notify";
+    }
+}

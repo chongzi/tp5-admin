@@ -1,0 +1,250 @@
+<?php
+namespace base\struct;
+
+//多维数组
+class Tree 
+{
+    var $arr = array();
+    var $adorn_html = "";
+    var $field_name = "";
+
+    public function __construct($arr=array(),$field_name='name',$adorn_html='&nbsp;&nbsp;&nbsp;&nbsp;')
+    {
+        $this->arr = $arr;
+        $this->adorn_html = $adorn_html;
+        $this->field_name = $field_name;
+    }
+
+    //获取树形数组
+    function getChildTree($curr_id=0,$level=0)
+    {  
+        $tree = array(); 
+        if($this->arr)
+        {
+            foreach($this->arr as &$v)
+            {
+                if($v['pid'] == $curr_id)
+                {
+                    $v["level"] = $level+1;   
+
+                    $v['child'] = $this->getChildTree($v['id'],$v["level"]);
+                    //如果子元素为空则unset()进行删除，说明已经到该分支的最后一个元素了（可选）
+                    if($v['child'] == null)
+                    {
+                        unset($v['child']);               
+                    }
+                    $tree[] = $v;  
+                }
+            } 
+        }
+        return $tree; 
+    }
+
+    function getParent($curr_id)
+    {
+        $parent = false;
+        $curr_arr = $this->arr[$curr_id];
+        foreach ($this->arr as $v) 
+        {
+            if($v['id'] == $curr_arr["pid"])
+            {
+                $parent = $v;
+                break;
+            }
+        }
+        return $parent;
+    }
+
+    /**
+    * 获取子级数组（不包括孙级）
+    * @param int
+    * @return array
+    */
+    function getChild($curr_id)
+    {
+        $a = $new_arr = array();
+        if(is_array($this->arr))
+        {
+            foreach($this->arr as $id => $a)
+            {
+                if($a['pid'] == $curr_id) 
+                {
+                    $new_arr[$id] = $a;
+                }
+            }
+        }
+        return $new_arr ? $new_arr : false;
+    }
+
+    //按照树形的顺序返回数组
+    function getArrTreeSort($curr_id=16,$level=0)
+    {
+        $new_arr = array();
+        $list = $this->getChildTree($curr_id,$level);
+        foreach ($list as $row) 
+        {
+            unset($row['child']);      
+            $new_arr[] = $row;
+
+            $child_arr = $this->getArrTreeSort($row["id"],$row["level"]);
+            foreach ($child_arr as $child)
+            {
+                $new_arr[] = $child;
+            }
+        }
+        return $new_arr;
+    }
+
+    //按照树形的顺序返回数组，并且添加了name_adorn(装饰代码+name)
+    function getArrTreeSortAdorn($curr_id=0)
+    {
+        $new_arr = $this->getArrTreeSort($curr_id,$level=0);
+        foreach ($new_arr as &$row) 
+        {
+            $temp = "";
+            for($i=1;$i<$row["level"];$i++)
+            {
+                $temp .= $this->adorn_html;
+            }
+            $row[$this->field_name."_adorn"] = $temp.$row[$this->field_name];
+        }
+        return $new_arr;
+    }
+
+    /**
+    * 得到父级数组
+    * @param int
+    * @return array
+    */
+    /*function getParent($curr_id)
+    {
+        $newarr = array();
+        if(!isset($this->arr[$curr_id])) 
+            return false;
+        $pid = $this->arr[$curr_id]['pid'];
+        $pid = $this->arr[$pid]['pid'];
+        if(is_array($this->arr))
+        {
+            foreach($this->arr as $id => $a)
+            {
+                if($a['pid'] == $pid) $newarr[$id] = $a;
+            }
+        }
+        return $newarr;
+    }*/
+
+    
+
+    /**
+    * 得到当前位置数组
+    * @param int
+    * @return array
+    */
+    /*function getPos($curr_id,&$newarr)
+    {
+        $a = array();
+        if(!isset($this->arr[$curr_id])) return false;
+        $newarr[] = $this->arr[$curr_id];
+        $pid = $this->arr[$curr_id]['pid'];
+        if(isset($this->arr[$pid]))
+        {
+            $this->getPos($pid,$newarr);
+        }
+        if(is_array($newarr))
+        {
+            krsort($newarr);
+            foreach($newarr as $v)
+            {
+                $a[$v['id']] = $v;
+            }
+        }
+        return $a;
+    }*/
+
+ 
+    /**
+     * -------------------------------------
+     *  得到树型结构
+     * -------------------------------------
+     * @author  Midnight(杨云洲),  yangyunzhou@foxmail.com
+     * @param $myid 表示获得这个ID下的所有子级
+     * @param $str 生成树形结构基本代码, 例如: "<option value=\$id \$select>\$spacer\$name</option>"
+     * @param $sid 被选中的ID, 比如在做树形下拉框的时候需要用到
+     * @param $adds
+     * @param $str_group
+     * @return unknown_type
+     */
+    /*function getTreeStr($myid, $str='', $sid = 0, $adds = '', $str_group = '')
+    {
+        $number=1;
+        $child = $this->getChild($myid);
+        if(is_array($child))
+        {
+            $total = count($child);
+            foreach($child as $id=>$a)
+            {
+                $j=$k='';
+                if($number==$total)
+                {
+                    $j .= $this->icon[2];
+                }
+                else
+                {
+                    $j .= $this->icon[1];
+                    $k = $adds ? $this->icon[0] : '';
+                }
+                $spacer = $adds ? $adds.$j : '';
+                $selected = $id==$sid ? 'selected' : '';
+                @extract($a);
+                $pid == 0 && $str_group ? eval("\$nstr = \"$str_group\";") : eval("\$nstr = \"$str\";");
+                $this->ret .= $nstr;
+                $this->getTreeArr($id, $str, $sid, $adds.$k.' ',$str_group);
+                $number++;
+            }
+        }
+        return $this->ret;
+    }*/
+
+    
+
+    /**
+    * 同上一方法类似,但允许多选
+    */
+    /*function getTreeMulti($myid, $str, $sid = 0, $adds = '')
+    {
+        $number=1;
+        $child = $this->getChild($myid);
+        if(is_array($child))
+        {
+            $total = count($child);
+            foreach($child as $id=>$a)
+            {
+                $j=$k='';
+                if($number==$total)
+                {
+                    $j .= $this->icon[2];
+                }
+                else
+                {
+                    $j .= $this->icon[1];
+                    $k = $adds ? $this->icon[0] : '';
+                }
+                $spacer = $adds ? $adds.$j : '';
+
+                $selected = $this->have($sid,$id) ? 'selected' : '';
+                //echo $sid.'=>'.$id.' : '.$selected.' . <br/>';
+                @extract($a);
+                eval("\$nstr = \"$str\";");
+                $this->ret .= $nstr;
+                $this->getTreeMulti($id, $str, $sid, $adds.$k.' ');
+                $number++;
+            }
+        }
+        return $this->ret;
+    }*/
+
+    /*function have($list,$item)
+    {
+        return(strpos(',,'.$list.',',','.$item.','));
+    }*/
+}

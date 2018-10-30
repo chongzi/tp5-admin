@@ -1,0 +1,73 @@
+{extend name="layout/common" /}
+
+{block name="header"}
+<section class="content-header">
+    <h1>
+        菜单管理
+    </h1>
+</section>
+{/block}
+
+{block name="body"}
+<div class="row">
+<div class="col-xs-12">
+<div class="box box-success">
+<form method="POST">
+    <div class="box-header">
+        <small>
+            <a href="{:url('admin/menu/index')}"><i class="fa fa-fw fa-home"></i>root</a>
+            {volist name="chain" id="menu"}
+             > <a href="{:url('admin/menu/index',['pid'=>$menu['id']])}">{$menu.title}</a>
+            {/volist}
+        </small>
+    </div>
+    
+    <div class="box-body">
+        <table class="table table-hover table-bordered">
+            <tr>
+                <th><input type="checkbox" class="checkbox check-all"></th>
+                <th>ID</th>
+                <th>名称</th>
+                <th>分组</th>
+                <th>URL</th>
+                <th>排序</th>
+                <th>仅开发者模式显示</th>
+                <th>隐藏</th>
+                <th>操作</th>
+            </tr>
+            {volist name="menus" id="menu"}
+            <tr>
+                <td><input type="checkbox" class="checkbox"></td>
+                <td>{$menu.id}</td>
+                <td><a href="{:url('admin/menu/index',['pid'=>$menu['id']])}">{$menu.title}</a></td>
+                <td>{$menu.group}</td>
+                <td>{$menu.url}</td>
+                <td><input type="number" class="form-control input-sm" value="{$menu.sort}" name="sort[{$menu.id}]"></td>
+                <td>{$menu->isDevText()}</td>
+                <td>
+                    
+                    {eq name="menu.hide" value="0"}
+                    <a href="{:url('admin/menu/forbid', ['id'=>$menu['id']])}" class="label label-success confirm get">{$menu->hideText()}</a>
+                    {else/}
+                    <a href="{:url('admin/menu/allow', ['id'=>$menu['id']])}" class="label label-danger ajax-get">{$menu->hideText()}</a>
+                    {/eq}
+                </td>
+                <td>
+                    <a href="{:url('admin/menu/edit', ['id'=>$menu['id']])}" class="label label-success">编辑</a>
+                    <a href="{:url('admin/menu/delete', ['id'=>$menu['id']])}" class="label label-danger ajax-delete">删除</a>
+                </td>
+            </tr>
+            {/volist}
+        </table>
+    </div>
+
+    <div class="box-footer clearfix">
+        <a href="{:url('admin/menu/create',$map)}" type="button" class="btn btn-success btn-sm">添加<i class="fa fa-fw fa-plus"></i></a>
+        <a href="{:url('admin/menu/sort')}" type="button" class="btn btn-success btn-sm ajax-post">排序<i class="fa fa-fw fa-sort"></i></a>
+        <a href="{:url('admin/menu/clear')}" type="button" class="btn btn-success btn-sm ajax-get" data-toggle="tooltip" data-placement="right" title="删除没有父级菜单的孤儿项。">清理<i class="fa fa-fw fa-trash"></i></a>
+    </div>
+</form>
+</div>
+</div>
+</div>
+{/block}

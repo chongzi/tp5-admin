@@ -1,0 +1,13 @@
+{
+    "require": {
+        "kiddyu/beanbun": "~1.0",
+        "phpoffice/phpword": "0.14.*",
+        "topthink/think-image": "^1.0"
+    },
+    "repositories": {
+        "packagist": {
+            "type": "composer",
+            "url": "https://packagist.phpcomposer.com"
+        }
+    }
+}

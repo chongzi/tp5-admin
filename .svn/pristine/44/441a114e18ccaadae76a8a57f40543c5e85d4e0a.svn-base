@@ -1,0 +1,61 @@
+{extend name="layout/common" /}
+
+{block name="header"}
+<section class="content-header">
+    <h1>
+        管理员列表
+    </h1>
+</section>
+{/block}
+
+{block name="body"}
+<div class="row">
+<div class="col-xs-12">
+<div class="box box-success">
+    <div class="box-header">
+        <a href="{:url('admin/Manager/create')}" type="button" class="btn btn-success btn-sm">添加<i class="fa fa-fw fa-plus"></i></a>
+    </div>
+    
+    <div class="box-body">
+        <table class="table table-hover table-bordered">
+            <tr>
+                <th><input type="checkbox" class="checkbox check-all"></th>
+                <th>ID</th>
+                <th>用户名</th>
+                <th>昵称</th>
+                <th>授权</th>
+                <th>状态切换</th>
+                <th>操作</th>
+            </tr>
+            {volist name="managers" id="manager"}
+            <tr>
+                <td><input type="checkbox" class="checkbox"></td>
+                <td>{$manager.id}</td>
+                <td>{$manager.name}</td>
+                <td>{$manager.nick_name}</td>
+                <td>
+                    <a href="{:url('admin/manager/group', ['id'=>$manager['id']])}" class="label label-success">角色授权</a>
+                </td>
+                <td>
+                    {eq name="manager.status" value="1"}
+                    <a href="{:url('admin/manager/forbid', ['id'=>$manager['id']])}" class="label label-success confirm get">{$manager->statusText()}</a>
+                    {else/}
+                    <a href="{:url('admin/manager/allow', ['id'=>$manager['id']])}" class="label label-danger ajax-get">{$manager->statusText()}</a>
+                    {/eq}
+                </td>
+                <td>
+                    <a href="{:url('admin/manager/edit', ['id'=>$manager['id']])}" class="label label-success">编辑</a>
+                </td>
+            </tr>
+            {/volist}
+            
+        </table>
+    </div>
+
+    <div class="box-footer clearfix">
+        {$managers->render()}
+    </div>
+</div>
+</div>
+</div>
+{/block}

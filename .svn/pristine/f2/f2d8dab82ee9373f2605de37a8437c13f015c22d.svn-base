@@ -1,0 +1,23 @@
+<?php
+
+namespace app\api\controller\v1;
+
+use app\api\controller\Base;
+use think\Cache;
+
+class Game extends Base {
+
+	public function postScore()
+	{
+		$data = $this->data;
+		$res = service("user_app")->postScore($data);
+		return $this->apkReturn($res);
+	}
+
+	public function phb()
+	{
+		$data = $this->data;
+		$res = service("user_app")->phb($data);
+		return $this->apkReturn($res);
+	}
+}

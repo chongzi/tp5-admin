@@ -1,0 +1,204 @@
+{extend name="layout/common" /} {block name="header"} {/block} {block name="body"}
+<div class="row">
+    <div class="col-md-12">
+        <div class="box box-success">
+            <div class="box-header with-border">
+            </div>
+            <form method="post" action="{:Url('upd')}" enctype="multipart/form-data" role="form" class="form-inline">
+                <table class="table table-hover table-bordered">
+                    <tbody>
+                        <tr>
+                            <td colspan="3">
+                                <h3>编辑我的礼品</h3></td>
+                            </tr>
+                            <tr>
+                                <td width="200px">昵称：</td>
+                                <td>
+                                    {$info['nick_name']}
+                                    
+                                </td>
+                            </tr>
+                            <tr>
+                                <td width="200px">应用名：</td>
+                                <td>
+                                    {$info['title']}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>头像：</td>
+                                <td>
+                                    <img src="{$info.face}" width="100" class="ico">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td width="200">可玩次数：</td>
+                                <td>
+                                    <input  size="16" type="text" value="{$info['playable_num']}" name="playable_num" class="form-control" style="width: 400px;" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td width="200">已玩次数：</td>
+                                <td>
+                                    <input  size="16" type="text" value="{$info['played_num']}" name="played_num" class="form-control" style="width: 400px;" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td width="200">通关次数：</td>
+                                <td>
+                                    <input size="16" type="text" value="{$info['succ_num']}" name="succ_num"  class="form-control" style="width: 400px;" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td width="200">最高分：</td>
+                                <td>
+                                    <input size="16" type="text" value="{$info['max_score']}"  name="max_score" class="form-control" style="width: 400px;" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td width="200">平台币：</td>
+                                <td>
+                                    <input  size="16" type="text" value="{$info['money']}" name="money"  class="form-control" style="width: 400px;" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td width="200">初玩时间：</td>
+                                <td>
+                                    {$info['add_time']|date="Y-m-d H:i:s",###}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td width="200">最后玩时间：</td>
+                                <td>
+                                    {$info['upd_time']|date="Y-m-d H:i:s",###}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td width="200">游戏记录：</td>
+                                <td>
+                                    {volist name="list" id="vo" key = "k"}
+                                        应用名 : {$vo.title}&nbsp;&nbsp;&nbsp;&nbsp;
+                                        次数 : {$k}&nbsp;&nbsp;&nbsp;&nbsp;
+                                        分数 ：{$vo.score}&nbsp;&nbsp;&nbsp;&nbsp;
+                                        是否通关 ：{if condition="$vo['is_succ'] == 1"}通关{else/}未通关{/if}&nbsp;&nbsp;&nbsp;&nbsp;
+                                        试玩时间 : {$vo['addtime']|date="Y-m-d H:i:s",###}&nbsp;&nbsp;&nbsp;&nbsp;
+                                        试玩IP : {$vo.ip}</br>
+                                    {/volist}
+                                </td>
+
+                            </tr>
+                            <tr>
+                                <td width="200">分享记录：</td>
+                                <td>
+                                    {volist name="share_info" id="vo" key = "k"}
+                                        次数 : {$k}&nbsp;&nbsp;&nbsp;&nbsp;
+                                        分享时间 : {$vo['add_time']|date="Y-m-d H:i:s",###}&nbsp;&nbsp;&nbsp;&nbsp;
+                                        分享IP : {$vo.ip}</br>
+                                    {/volist}
+                                </td>
+
+                            </tr>
+                             <tr>
+                                <td width="200">签到记录：</td>
+                                <td>
+                                    {volist name="sign_info" id="vo" key = "k"}
+                                        次数 : {$k}&nbsp;&nbsp;&nbsp;&nbsp;
+                                        签到时间 : {$vo['add_time']|date="Y-m-d H:i:s",###}&nbsp;&nbsp;&nbsp;&nbsp;
+                                        签到IP : {$vo.ip}&nbsp;&nbsp;&nbsp;&nbsp;
+                                        连续签到次数 ：{$vo.sign_num}&nbsp;&nbsp;&nbsp;&nbsp;
+                                        签到礼品 ：{$vo.sign_gift}</br>
+                                    {/volist}
+                                </td>
+
+                            </tr>
+                            <tr>
+                                <td width="200">模板消息记录：</td>
+                                <td>
+                                    {volist name="template_info" id="vo" key = "k"}
+                                        次数 : {$k}&nbsp;&nbsp;&nbsp;&nbsp;
+                                        发送时间 : {$vo['send_time']|date="Y-m-d H:i:s",###}&nbsp;&nbsp;&nbsp;&nbsp;
+                                        已签到次数 : {$vo.sign_num}&nbsp;&nbsp;&nbsp;&nbsp;
+                                        签到礼物 : {$vo.send_gift}</br>
+                                    {/volist}
+                                </td>
+
+                            </tr>
+                         <!--    <tr>
+                                <td width="200">状态：</td>
+                                <td>
+                                {volist name="gift_state" id="vo" key = "k"}
+                                <input  size="16" type="radio" name="status" value="{$key}" class="J_select" value="{$key}" {if condition="$info['status'] == $key"} checked="true" {/if}/>
+                                {$vo}</br>
+                                {/volist}
+                                </td>
+                            </tr> -->
+                            
+
+                        </tbody>
+                    </table>
+                    <div class="row-fluid" style="margin-top: 20px;margin-left: 200px;padding-bottom:20px;">
+                        {notempty name="info.id"}
+                        <input type="hidden" name="id" value="{$info['id']}" />{/notempty}
+                        <button class="btn btn-primary" type="submit">提交</button>
+                        <button class="btn" type="reset" style="margin-left: 30px;">取消</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {/block} {block name="script"}
+    <script type="text/javascript" src="/static/plupload-2.1.2/js/plupload.full.min.js"></script>
+    <script type="text/javascript" src="/static/plupload-2.1.2/js/upload2.js"></script>
+    <script>
+        $("#ico").fileinput({
+    language: 'zh', //设置语言
+
+    uploadUrl:"http://admin.tp5demo.com/uploads", //上传的地址
+
+    allowedFileExtensions: ['jpg', 'gif', 'png'], //接收的文件后缀
+
+    //uploadExtraData:{"id": 1, "fileName":'123.mp3'},
+
+    uploadAsync: false, //默认异步上传
+
+    showUpload: false, //是否显示上传按钮
+
+    showRemove: true, //显示移除按钮
+
+    showPreview: true, //是否显示预览
+
+    showCaption: false, //是否显示标题
+
+    browseClass: "btn btn-primary", //按钮样式    
+
+    dropZoneEnabled: false, //是否显示拖拽区域
+
+    //minImageWidth: 50, //图片的最小宽度
+
+    //minImageHeight: 50,//图片的最小高度
+
+    //maxImageWidth: 1000,//图片的最大宽度
+
+    //maxImageHeight: 1000,//图片的最大高度
+
+    //maxFileSize:0,//单位为kb，如果为0表示不限制文件大小
+
+    //minFileCount: 0,
+
+    maxFileCount: 10, //表示允许同时上传的最大文件个数
+
+    enctype: 'multipart/form-data',
+
+    validateInitialCount: true,
+
+    previewFileIcon: "<iclass='glyphicon glyphicon-king'></i>",
+
+    msgFilesTooMany: "选择上传的文件数量({n}) 超过允许的最大数值{m}！",
+
+}).on("fileuploaded", function(event, data, previewId, index) {
+    console.log(data);
+});
+$("#voice").fileinput({
+    language: 'zh', //设置语言
+});
+</script>
+{/block}

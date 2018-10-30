@@ -1,0 +1,118 @@
+<?php
+namespace aliyunOss;
+use Mts\Request\V20140618 as Mts;
+
+class snapshotjob {
+
+	private $AccessKeyID;
+	private $AccessKeySecret;
+	private $Pipeline;
+	private $OSS;
+	private $BucketName;
+	private $Region;
+
+    public function __construct($config = []){
+        $this->AccessKeyID = isset($config['AccessKeyID'])?$config['AccessKeyID']:config::AccessKeyID;
+        $this->AccessKeySecret = isset($config['AccessKeySecret']):$config['AccessKeySecret']?config::AccessKeySecret;
+        $this->PipelineId = isset($config['PipelineId'])?$config['PipelineId']:config::PipelineId;
+        $this->OSS = isset($config['OSS']):$config['OSS']?config::OSS;
+        $this->BucketName = isset($config['BucketName'])?$config['BucketName']:config::BucketName;
+        $this->Region = isset($config['Regin'])?$config['Regin']:config::Regin;
+		include_once 'sts-server/aliyun-php-sdk-core/Config.php';
+    }
+
+	/**
+	 * 对存储于OSS上的视频文件截取指定时间的JPG格式图像
+	 * params    $input_object  截图的视频
+	 *        	$output_object : 截图的封面名称
+	 *          $interval :截图的间隔时间
+	 *          $interval :截图的数量
+	 *          $num:截图的数量
+	 **/
+	public function SnapshotJob($input_object,$output_object,$time,$interval=1,$num=1) {
+		$region = $this->Region;
+		$access_key_id = $this->AccessKeyID;
+		$access_key_secret = $this->AccessKeySecret;;
+		$pipeline_id = $this->PipelineId;
+		$oss_location = $this->OSS;
+		$input_bucket = $this->BucketName;
+		$output_bucket = $this->BucketName;
+		$frame_type = 'normal';
+		$input = array(
+			'Location' => $oss_location,
+			'Bucket' => $input_bucket,
+			'Object' => $input_object,
+		);
+		$output = array(
+			'Location' => $oss_location,
+			'Bucket' => $output_bucket,
+			'Object' => $output_object,
+		);
+		$snapshot_config = array(
+			'OutputFile' => $output,
+			'Time' => $time,
+			'Interval' => $interval,
+			'Num' => $num,
+			'FrameType' => $frame_type,
+			// "Width"=> $width,
+			// "Height"=> $height
+		);
+		$profile = \DefaultProfile::getProfile($region, $access_key_id, $access_key_secret);
+		\DefaultProfile::addEndpoint($region, $region, "Mts", "mts.cn-shenzhen.aliyuncs.com");
+		$client = new \DefaultAcsClient($profile);
+		$request = new Mts\SubmitSnapshotJobRequest();
+		$request->setPipelineId($pipeline_id);
+		$request->setInput(json_encode($input));
+		$request->setSnapshotConfig(json_encode($snapshot_config));
+		// 如果出错，可能会抛出ClientException或ServerException异常
+		$response = $client->getAcsResponse($request);
+		$request_id = $response->RequestId;
+		return $request_id;
+	}
+
+	/**
+	 *查询截图任务的进度接口
+	 *参数  $snapshotIds 
+	 *每一个截图任务都会有返回$snapshotIds
+	 *通过request_id可以可以查询截图进度
+	 **/
+	public function QuerySnapshotJobList($snapshotIds) {
+		$region = $this->Region;
+		$access_key_id = $this->AccessKeyID;
+		$access_key_secret = $this->AccessKeySecret;
+		// 已知的截图snapshotIds，多个截图任务用','分隔
+		$profile = \DefaultProfile::getProfile($region, $access_key_id, $access_key_secret);
+		\DefaultProfile::addEndpoint($region, $region, "Mts", "mts.cn-shenzhen.aliyuncs.com");
+		$client = new \DefaultAcsClient($profile);
+		$request = new Mts\QuerySnapshotJobListRequest();
+		$request->setSnapshotJobIds($snapshotIds);
+		// 如果出错，可能会抛出ClientException或ServerException异常
+		$response = $client->getAcsResponse($request);
+		$snapshots = $response->SnapshotJobList->SnapshotJob;
+		foreach ($snapshots as $snapshot) {
+			echo 'snapshot id:' . $snapshot->Id . ', count:' . $snapshot->Count . "\n";
+		}
+	}
+
+	/**
+	 *oss接口 查询管道   通过管道状态搜索管道
+	 *在某些oss接口操作需要传管道参数  比如截图
+	 **/
+	public function SearchPipeline() {
+		$region = $this->Region;
+		$access_key_id = $this->AccessKeyID;
+		$access_key_secret = $this->AccessKeySecret;
+		$profile = \DefaultProfile::getProfile($region, $access_key_id, $access_key_secret);
+		\DefaultProfile::addEndpoint($region, $region, "Mts", "mts.cn-shenzhen.aliyuncs.com");
+		$client = new \DefaultAcsClient($profile);
+		$request = new Mts\SearchMediaWorkflowRequest();
+		$request = new Mts\SearchPipelineRequest();
+		// 如果出错，可能会抛出ClientException或ServerException异常
+		$response = $client->getAcsResponse($request);
+		$pipelines = $response->PipelineList->Pipeline;
+		foreach ($pipelines as $pipeline) {
+			echo 'pipeline id:' . $pipeline->Id . ', name:' . $pipeline->Name . ', state:' . $pipeline->State . "\n";
+		}
+	}
+
+}

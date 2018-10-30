@@ -1,0 +1,140 @@
+{extend name="layout/common" /}
+
+
+{block name="header"}
+
+{/block}
+
+{block name="body"}
+<div class="row">
+
+    <div class="col-md-12">
+        <div class="box box-success">
+            <div class="box-header with-border">
+            </div>
+            <form method="post" action="{:Url('upd')}" enctype="multipart/form-data" role="form" class="form-inline">
+                <table class="table table-hover table-bordered">
+                    <tbody>
+                        <tr>
+                            <td width="200px">选择父级渠道：</td>
+                            <td>
+                                <select name="pid" {if condition="$id gt 0"}disabled{/if} class="form-control">
+                                    <option value="0">一级渠道</option>
+                                        {volist name="agents" id="agent"}
+                                            {if condition ="$info[pid] == $agent[id] || $pid == $agent[id]"}
+                                                <option value="{$agent.id}" selected>{$agent.title}</option>
+                                                {else/}
+                                                <option value="{$agent.id}">{$agent.title}</option>                                                    
+                                            {/if}
+                                        {/volist}
+                                </select>
+                            </td>
+                        </tr>                            
+                        <tr>
+                            <td width="200px">渠道账号：</td>
+                            <td>
+                                {notempty name="info.id"}<input type="hidden" name="id" value="{$info['id']}"/>{/notempty}
+                                {notempty name="info.id"}<input type="hidden" name="type" value="{$info['type']}"/>{/notempty}
+                                <input name="name" size="16" type="text" value="{$info['name']}" {notempty name="info.id"}readonly{/notempty} class="form-control"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td width="200px">渠道名称：</td>
+                            <td>
+                                <input name="title" size="16" type="text" value="{$info['title']}" class="form-control" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td width="200px">设置密码：</td>
+                            <td>
+                                <input name="pwd" size="16" type="password" value="" class="form-control"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td width="200px">重复密码：</td>
+                            <td>
+                                <input name="repwd" size="16" type="password" value="" class="form-control"/>
+                            </td>
+                        </tr>                                   
+                        <tr>
+                            <td width="200px">手机号码：</td>
+                            <td>
+                                <input name="mobile" size="16" type="text" value="{$info['mobile']}" class="form-control"/>
+                            </td>
+                        </tr>  
+                        <tr>
+                            <td width="200px">qq：</td>
+                            <td>
+                                <input name="qq" size="16" type="text" value="{$info['qq']}" class="form-control" />
+                            </td>
+                        </tr>                                
+                        <tr>
+                            <td width="200px">分成比例：</td>
+                            <td>
+                                <input name="rate" size="16" type="text" value="{$info['rate']|toPercent}" class="form-control"/>%
+                            </td>
+                        </tr>                                                        
+                        <tr>
+                            <td>状态</td>
+                            <td>
+                                <select name="status" id="status" class="form-control">
+                                    <option value="-1">--状态</option>
+                                    {volist name="opt_status" id="vo"}
+                                    {if condition="$key eq $info['status']"}
+                                         <option value="{$key}" selected>{$vo}</option>
+                                         {else /}
+                                         <option value="{$key}" >{$vo}</option>                                               
+                                    {/if}
+                                    {/volist}
+                                </select>
+                            </td>
+                        </tr> 
+                        <tr>
+                            <td>付费方式</td>
+                            <td>
+                                <select name="fee_type" id="fee_type" class="form-control">
+                                    <option value="-1">--付费方式</option>
+                                    {volist name="opt_fee_type" id="vo"}
+                                    {if condition="$key == $info['fee_type']"}
+                                         <option value="{$key}" selected>{$vo}</option>
+                                         {else /}
+                                         <option value="{$key}" >{$vo}</option>                                               
+                                    {/if}
+                                    {/volist}
+                                </select>
+                            </td>
+                        </tr> 
+                        <notempty name="info.id">
+                            <tr>
+                                <td width="200px">注册时间：</td>
+                                <td>
+                                    {empty name="info"}
+                                    <input name="reg_time" size="16" type="text" value="{:date('Y-m-d H:i:s',time())}" class="form-control" readonly/>
+                                    {else/}
+                                    <input name="reg_time" size="16" type="text" value="{$info['reg_time']|date='Y-m-d H:i:s',###}" class="form-control" readonly/>
+                                    {/empty}
+                                </td>
+                            </tr>  
+                            <tr>
+                                <td width="200px">注册ip：</td>
+                                <td>
+                                    {empty name="info"}
+                                    <input name="reg_ip" size="16" type="text" value="{$Request.ip}" class="form-control" readonly/>
+                                    {else/}
+                                    <input name="reg_ip" size="16" type="text" value="{$info['reg_ip']}" class="form-control"  readonly/>
+                                    {/empty}
+                                </td>
+                            </tr>  
+                        </notempty>                                
+                    </tbody>
+                </table>
+                <div class="row-fluid" style="margin-top: 20px;margin-left: 200px;padding-bottom:20px;">
+                    <notempty name="info.id"><input type="hidden" name="id" value="{$info['id']}"/></notempty>
+                    <button class="btn btn-primary" type="submit">提交</button>
+                    <button class="btn" type="reset" style="margin-left: 30px;">取消</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{/block}

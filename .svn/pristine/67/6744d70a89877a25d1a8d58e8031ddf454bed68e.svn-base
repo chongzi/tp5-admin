@@ -1,0 +1,232 @@
+<?php
+
+namespace base\pament\wxpay\Wxpay;
+
+use base\paymemt\IPay;
+use base\paymemt\PayBase;
+
+const WXPAY_VERSION = '3.0.1';
+
+require_once "Lib_" . WXPAY_VERSION . "/WxPay.Api.php";
+require_once "Lib_" . WXPAY_VERSION . "/WxPay.Exception.php";
+require_once "Lib_" . WXPAY_VERSION . "/WxPay.Data.php";
+require_once "Lib_" . WXPAY_VERSION . "/WxPay.Notify.php";
+require_once 'log.php';
+
+require_once "Notify.php"; // 自定义回调通知
+require_once "NativeData.php"; // APP唤起参数签名
+
+/**
+ * 微信支付SDK
+ *
+ * 注意：
+ *     1. 由于微信支付SDK的配置参数通过类常量定义，因此对于不同的支付账户，需要引入不同的配置文件。
+ *
+ *     2. 在SDK主文件中引入过了其他所需类库文件以及配置文件，故在其他类库文件中无需再次引入，避免重复或配置被覆盖。
+ *
+ *     3. WxPay.Api.php 文件中的postXmlCurl方法被修改过，包括  CURLOPT_SSL_VERIFYPEER、CURLOPT_SSL_VERIFYHOST参数的设置，证书路径的绝对化。
+ *
+ */
+class Wxpay extends PayBase implements IPay
+{
+
+    protected $pay_type = 'Wxpay';
+
+    protected $version = WXPAY_VERSION;
+
+    protected $account;
+
+    protected $config;
+
+    protected $info;
+
+    public function __construct($option)
+    {
+        parent::__construct();
+        // 获取支付账户
+        $this->account = isset($option['account']) ? $option['account'] : 'default';
+        require_once "Config/" . strtolower($this->account) . ".php";
+    }
+
+    public function init($info)
+    {
+        $this->info = $info;
+    }
+
+    public function returnUrl()
+    {
+
+    }
+
+    public function notifyUrl()
+    {
+        $notify = new \PayNotifyCallBack();
+
+        $notify->setCallback(array($this, 'paySuccess'));
+        $notify->Handle(false);
+    }
+
+    public function closeOrder($out_trade_no)
+    {
+        $input = new \WxPayCloseOrder();
+        $input->SetOut_trade_no($out_trade_no);
+        $result = \WxPayApi::closeOrder($input);
+
+        if ($result['return_code'] == 'SUCCESS'){
+            if ($result['result_code'] == 'SUCCESS'){
+                return true;
+            }
+        }
+        $this->error = '操作失败';
+        return false;
+    }
+
+    public function orderQuery($out_trade_no)
+    {
+        $input = new \WxPayOrderQuery();
+        $input->SetOut_trade_no($out_trade_no);
+        $result = \WxPayApi::orderQuery($input);
+        
+        if ($result['return_code'] == 'SUCCESS') {
+            if ($result['result_code'] == 'SUCCESS') {
+                if ($result['trade_state'] == 'SUCCESS')
+                {
+                    return true;
+                } 
+                else 
+                {
+                    $this->error = $result['trade_state_desc'];
+                    return false;
+                }
+            }
+        }
+        $this->error = '操作失败';
+        return false;
+    }
+
+    //申请退款
+    public function refund($out_trade_no, $total_fee, $refund_fee)
+    {
+        $input = new \WxPayRefund();
+        $input->SetOut_trade_no($out_trade_no);
+        $input->SetTotal_fee($total_fee);
+        $input->SetRefund_fee($refund_fee);
+        $input->SetOut_refund_no(\WxPayConfig::MCHID . date("YmdHis"));
+        $input->SetOp_user_id(\WxPayConfig::MCHID);
+
+        $result = \WxPayApi::refund($input);
+        if ($result['return_code'] == 'SUCCESS') {
+            if ($result['result_code'] == 'SUCCESS') {
+                return true;
+            }
+        }
+        $this->error = '操作失败';
+        return false;
+    }
+
+    public function refundQuery($out_trade_no)
+    {
+        $input = new \WxPayRefundQuery();
+        $input->SetOut_trade_no($out_trade_no);
+        $result = \WxPayApi::refundQuery($input);
+
+        if ($result['return_code'] == 'SUCCESS') {
+            if ($result['result_code'] == 'SUCCESS') {
+                return true;
+            } else {
+                $this->error = $result['err_code_des'];
+                return false;
+            }
+        }
+        $this->error = '操作失败';
+        return false;
+    }
+
+    /**
+     * APP支付所需参数
+     * @return   array
+     */
+    public function app()
+    {
+        $order = $this->unifiedOrder('APP');
+
+        $order['timestamp'] = time();
+
+        // 签名 prepay_id
+        $params = new \NativeData();
+        $params->setData($order);
+        $order['sign'] = $params->SetSign();
+
+        return $order;
+    }
+
+    /**
+     * PC支付
+     *     返回微信协议链接，需要转化成二维码后扫码完成支付
+     * @return   string
+     */
+    public function web()
+    {
+        $order = $this->unifiedOrder('NATIVE');
+        return $order["code_url"];
+    }
+
+    /**
+     * 账号未授权，还没有测试
+     */
+    public function mobile()
+    {
+        $order = $this->unifiedOrder('MWEB');
+        return $order["mweb_url"];
+    }
+
+    /**
+     * 微信支付公众号支付
+     *     未对接，需要在init中传入openid
+     */
+    public function native()
+    {
+        echo 'aaa';exit();
+        $order = $this->unifiedOrder('JSAPI');
+        
+        $jsapi = new \WxPayJsApiPay();
+        $jsapi->SetAppid($order["appid"]);
+        $timeStamp = time();
+        $jsapi->SetTimeStamp("$timeStamp");
+        $jsapi->SetNonceStr(\WxPayApi::getNonceStr());
+        $jsapi->SetPackage("prepay_id=" . $order['prepay_id']);
+        $jsapi->SetSignType("MD5");
+        $jsapi->SetPaySign($jsapi->MakeSign());
+        
+        return $jsapi->GetValues();
+    }
+
+    //统一下单
+    private function unifiedOrder($trade_type)
+    {
+        $notify_url = $this->baseUrl . 'notify/wxpay/' . $this->account;
+
+        // 统一下单
+        $input = new \WxPayUnifiedOrder();
+
+        $input->SetBody($this->info['title']);
+        $input->SetOut_trade_no($this->info["out_trade_no"]);
+        $input->SetTotal_fee($this->info["money"] * 100);
+
+        $input->SetAttach(isset($this->info['attach']) ? $this->info['attach'] : '');
+        $input->SetGoods_tag(isset($this->info['tag']) ? $this->info['tag'] : ''); //商品标记
+        $input->SetProduct_id(isset($this->info['product_id']) ? $this->info['product_id'] : '');
+        
+        if(isset($this->info['openid'])){
+            $input->SetOpenid($this->info['openid']);
+        }
+
+        $input->SetTime_start(date("YmdHis"));
+        $input->SetTime_expire(date("YmdHis", time() + 600));
+        $input->SetNotify_url($notify_url);
+        $input->SetTrade_type($trade_type);
+
+        return \WxPayApi::unifiedOrder($input);
+    }
+
+}

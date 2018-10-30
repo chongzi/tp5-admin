@@ -1,0 +1,317 @@
+{extend name="layout/common" /} {block name="header"} {/block} {block name="body"}
+<div class="row">
+    <div class="col-md-12">
+        <div class="box box-success">
+            <div class="box-header with-border">
+            </div>
+            <form method="post" action="{:Url('upd')}" enctype="multipart/form-data" role="form" class="form-inline">
+                <table class="table table-hover table-bordered">
+                    <tbody>
+                        <tr>
+                            <td colspan="3">
+                                <h3>编辑应用</h3></td>
+                            </tr>
+                            <tr>
+                                <td width="200px">应用图标</td>
+                                <td>
+                                    <input type="file" id="file_upload1" value="选择图片" name="ico" class="checkPic" style="position:absolute;opacity:0;width:100%;height:50px;z-index:1;cursor:pointer;" />
+                                    <input class="btn btn-primary radius" value="选择图片"/>
+                                    &nbsp;<img src="{$info['ico']}" id = "icoimg" width="100" class="ico">
+                                    <input type="hidden" id="smallimg" name="ico" value="{$info.ico}">
+                                </td>
+                            </tr>
+                            <tr>
+                                <input type="hidden" name="id" value="{$info['id']}" />
+                                <td width="200px" >分享标题,图片：</td>
+                                <td id="shareParent">
+                                    <button type='button' class="btn btn-primary" id="addShare" num="{:count($info.share_title)}">添加</button>
+                                    {if condition="$info['share_ico'] || $info['share_title']"}
+                                    {volist name="info['share_title']" id="vo"}
+                                </br>分享 {$key+1} <input name="share_title[{$key}]" size="16" type="text" value="{$vo}" class="form-control"  style="width: 400px;" />
+                                <input size="16" type="file" name="share_ico[{$key}]" key="{$key}" class="form-control" />&nbsp;<img src="{$info['share_ico'][$key]}" width="100" class="ico">
+                                {if condition="$info['share_ico'][$key]"}
+                                <input type="hidden" name="share_ico[{$key}]" value="{$info['share_ico'][$key]}" />
+
+                                {/if}
+                                <input type="hidden" name="key[{$key}]" id="key{$key}" value="" />
+                                {/volist}
+                                {/if}
+                            </td>
+
+                        </tr>
+                        <tr>
+                            <td width="200px">应用名称：</td>
+                            <td>
+                                <input name="title" size="16" type="text" value="{$info['title']}"  class="form-control" style="width: 400px;" />
+                            </td>
+                        </tr>
+
+
+                        <tr>
+                            <td>版本：</td>
+                            <td>
+                                <input size="16" type="text" name="version" value="{notempty name='info.id'}{$info['version']}{/notempty}" id="version" class="form-control" style="width: 400px;" />
+                            </td>
+                        </tr>
+
+
+                        <tr>
+                            <td>排序：</td>
+                            <td>
+                                <input size="16" type="text" name="sort" value="{notempty name='info.id'}{$info['sort']}{/notempty}" class="form-control" style="width: 400px;" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>状态：</td>
+                            <td>
+                                <select name="status" id="status" class="form-control">
+                                    {volist name="opt_status" id="vo"} {if condition="$key eq $info['status']"}
+                                    <option value="{$key}" selected>{$vo}</option>
+                                    {else /}
+                                    <option value="{$key}">{$vo}</option>
+                                    {/if} {/volist}
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>金币转换比：</td>
+                            <td>
+                                <input size="16" type="text" name="convert_gift_rate" value="{notempty name='info.convert_gift_rate'}{$info['convert_gift_rate']}{/notempty}" class="form-control" style="width: 400px;" />
+                                （各应用跟礼物的价格的乘积得到最终的挑战币）
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>通关获取金币数：</td>
+                            <td>
+                                <input size="16" laceholder="1-2" type="text" name="succ_money" value="{notempty name='info.succ_money'}{$info['succ_money']}{/notempty}" class="form-control" style="width: 400px;" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>玩家登入每日赠送可玩数：</td>
+                            <td>
+                                <input size="16" type="text" name="user_play_num"  value="{$info['user_play_num']}" class="form-control" style="width: 400px;" />（默认不限制,大于0则开启挑战次数限制）
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>兑换/提现的最低金币数：</td>
+                            <td>
+                                <input size="16"  placeholder="0.3/10/30" type="text" name="allow_change_money"  value="{$info['allow_change_money']}" class="form-control" style="width: 400px;" />（默认不限制）
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>每天分享群的奖励次数：</td>
+                            <td>
+                                <input size="16"  type="text" name="share_num"  value="{$info['share_num']}" class="form-control" style="width: 400px;" />（默认不限制）
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>题目总数：</td>
+                            <td>
+                                <input size="16"  type="text" name="question_num"  value="{$info['question_num']}" class="form-control" style="width: 400px;" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>玩家挑战总数：</td>
+                            <td>
+                                <input size="16" readonly="true" type="text" value="{notempty name='playCount'}{$playCount}{/notempty}" class="form-control" style="width: 400px;" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>玩家分享总数：</td>
+                            <td>
+                                <input size="16" readonly="true" type="text"  value="{notempty name='shareCount'}{$shareCount}{/notempty}" class="form-control" style="width: 400px;" />
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>绑定礼物：</td>
+                            <td>
+                                {volist name="giftList" id="vo"}
+                                {if condition="in_array($vo['id'],$info['app_gift_id'])"}
+                                <input  size="16" type="checkbox" name="gift[]" value="{$vo.id}" class="J_select" value="" checked="true" />
+                                {else/}
+                                <input  size="16" type="checkbox" name="gift[]" value="{$vo.id}" class="J_select" value=""/>
+                                {/if}
+                            {$vo.name}</br>
+                            {/volist}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>签到天数：</td>
+                        <td id="addParent">
+                            <button type='button' class="btn btn-primary" id="addAnswer" num="{:count($info.sign_arr)}">添加</button>
+                            {if condition="$type == 'add'"}
+
+                            {else/}
+                            {volist name="$info['sign_arr']" id="vo"}
+                        </br>签到{php}echo $key + 1;{/php}天送：<select name="sign_type[{$key}]"  class="form-control"><option value="played_num" {if condition="$vo['sign_type'] == 'played_num'"}selected='true'{/if}>挑战次数</option><option value="money" {if condition="$vo['sign_type'] == 'money'"}selected='true'{/if}>金币</option></select> <input type="text" name="sign_value[{$key}]" class="form-control" style="width: 100px;" size="16" value="{$vo.sign_value}"/> (不带单位)
+                        {/volist}
+                        {/if}
+
+                    </td>
+                </tr>
+                <tr>
+                        <td>答题时间：</td>
+                        <td id="addParentTime">
+                            <button type='button' class="btn btn-primary" id="addAnswerTime" num="{:count($info.answer_time_arr)}">添加</button>
+                            {if condition="$type == 'add'"}
+
+                            {else/}
+                            {volist name="$info['answer_time_arr']" id="vo"}
+                        </br>题目 ：<input type="text" placeholder="1-5" name="answer_no[{$key}]" class="form-control" style="width: 100px;" size="16" value="{$vo.answer_no}"/> 答题时间 ：<input type="text" name="answer_time[{$key}]" class="form-control" style="width: 100px;" size="16" value="{$vo.answer_time}"/> (不带单位)
+                        {/volist}
+                        {/if}
+
+                    </td>
+                </tr>
+                <tr>
+                    <td>更多玩法：</td>
+                    <td>
+                        {volist name="moreApp" id="vo"}
+                        {if condition="in_array($vo['id'],$info['more_app_id'])"}
+                        <input  size="16" type="checkbox" name="more_app_id[]" value="{$vo.id}" class="J_select" value="" checked="true" />
+                        {else/}
+                        <input  size="16" type="checkbox" name="more_app_id[]" value="{$vo.id}" class="J_select" value=""/>
+                        {/if}
+                    {$vo.name}</br>
+                    {/volist}
+                </td>
+            </tr>
+            <tr>
+                <td>小程序appid：</td>
+                <td>
+                    <input size="16" type="text" name="wx_app_id" value="{notempty name='info.wx_app_id'}{$info['wx_app_id']}{/notempty}" class="form-control" style="width: 400px;" />
+                </td>
+            </tr>
+            <tr>
+                <td>小程序秘钥：</td>
+                <td>
+                    <input size="16" type="text" name="wx_app_secret" value="{notempty name='info.wx_app_secret'}{$info['wx_app_secret']}{/notempty}" class="form-control" style="width: 400px;" />
+                </td>
+            </tr>
+            <tr>
+                <td>公众号appid：</td>
+                <td>
+                    <input size="16" type="text" name="app_id" value="{notempty name='info.app_id'}{$info['app_id']}{/notempty}" class="form-control" style="width: 400px;" />
+                </td>
+            </tr>
+            <tr>
+                <td>公众号秘钥：</td>
+                <td>
+                    <input size="16" type="text" name="app_secret" value="{notempty name='info.app_secret'}{$info['app_secret']}{/notempty}" class="form-control" style="width: 400px;" />
+                </td>
+            </tr>
+             <tr>
+                <td>商户号：</td>
+                <td>
+                    <input size="16" type="text" name="app_key" value="{notempty name='info.app_key'}{$info['app_key']}{/notempty}" class="form-control" style="width: 400px;" />
+                </td>
+            </tr>
+             <tr>
+                <td>支付秘钥：</td>
+                <td>
+                    <input size="16" type="text" name="pay_key" value="{notempty name='info.pay_key'}{$info['pay_key']}{/notempty}" class="form-control" style="width: 400px;" />
+                </td>
+            </tr>
+            <tr>
+                <td>模板消息ID：</td>
+                <td>
+                    <input size="16" type="text" name="template_id" value="{notempty name='info.template_id'}{$info['template_id']}{/notempty}" class="form-control" style="width: 400px;" />
+                </td>
+            </tr>
+            <tr>
+                <td>模板消息内容：</td>
+                <td>
+                    <input size="16" type="text" name="template_msg" value="{notempty name='info.template_msg'}{$info['template_msg']}{/notempty}" class="form-control" style="width: 400px;" />
+                </td>
+            </tr>
+            <tr>
+                <td width="200">应用规则：</td>
+                <td>
+                    <textarea name="app_desc"  rows="10" style="width: 800px;">{$info['app_desc']}</textarea>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+    <div class="row-fluid" style="margin-top: 20px;margin-left: 200px;padding-bottom:20px;">
+        {notempty name="info.id"}
+        <input type="hidden" name="id" value="{$info['id']}" />{/notempty}
+        <button class="btn btn-primary" type="submit">提交</button>
+        <button class="btn" type="reset" style="margin-left: 30px;">取消</button>
+    </div>
+</form>
+</div>
+</div>
+</div>
+{/block} {block name="script"}
+<script type="text/javascript" src="/static/plupload-2.1.2/js/plupload.full.min.js"></script>
+<script type="text/javascript" src="/static/plupload-2.1.2/js/upload2.js"></script>
+<script>
+ $(function(){
+    var n = $('#addAnswer').attr('num');
+    if(!n) n = 0;
+    $('#addAnswer').click(function(){
+        var html = '</br>签到'+(parseInt(n)+1)+'天送：<select name="sign_type['+n+']"  class="form-control"><option value="played_num">挑战次数</option><option value="money">金币</option></select> <input type="text" name="sign_value['+n+']" class="form-control" style="width: 100px;" size="16"/> (不带单位)';
+        $('#addParent').append(html);
+        n++;
+    })
+    var a = $('#addShare').attr('num');
+    if(!a) a = 0;
+    $('#addShare').click(function(){
+        var html = '</br>分享 '+(parseInt(a)+1)+' <input name="share_title['+a+']" size="16" type="text" value="" class="form-control"  style="width: 400px;" />&nbsp;<input size="16" type="file" name="share_ico[]" id="ico" class="form-control" /><img src="" width="100" class="ico"><input type="hidden" name="key['+a+']" id="key'+a+'" value="'+a+'" />';
+        $('#shareParent').append(html);
+        a++;
+    })
+
+    var b = $('#addAnswerTime').attr('num');
+    if(!b) b = 0;
+    $('#addAnswerTime').click(function(){
+        var html = '</br>题目 ：<input type="text" placeholder="1-5" name="answer_no['+b+']" class="form-control" style="width: 100px;" size="16" value="{$vo.answer_no}"/> 答题时间 ：<input type="text" name="answer_time['+b+']" class="form-control" style="width: 100px;" size="16" value="{$vo.sign_value}"/> (不带单位)';
+        $('#addParentTime').append(html);
+        b++;
+    })
+})
+ $("#file_upload1").change(function(){
+    var fileObj = $(this)[0].files[0];
+    console.log(fileObj);
+    var FileController = "{:url('ajaxImg')}";
+    var form = new FormData();
+    fileid = $(this).attr('id');
+    form.append("ico", fileObj);
+    createXMLHttpRequest();
+    xhr.onreadystatechange = handleStateChange;
+    xhr.open("post", FileController, true);
+    xhr.send(form);
+})
+
+ function createXMLHttpRequest() {
+    if (window.ActiveXObject) {
+        xhr = new ActiveXObject("Microsoft.XMLHTTP");
+    } else if (window.XMLHttpRequest) {
+        xhr = new XMLHttpRequest();
+    }
+}
+
+function handleStateChange() {
+    if (xhr.readyState == 4) {
+        if (xhr.status == 200 || xhr.status == 0) {
+            var result = xhr.responseText;
+            var json = eval("(" + result + ")");
+            if(json.status == 'success'){
+                console.log(json);
+                $("#smallimg").val(json.img);
+                $("#icoimg").attr('src',json.img);
+            }
+        }
+    }
+}
+$("#voice").fileinput({
+    language: 'zh', //设置语言
+});
+$('input[type=file]').change(function(){
+  var key = $(this).attr('key');
+  $('#key'+key).val(key);
+})
+</script>
+{/block}

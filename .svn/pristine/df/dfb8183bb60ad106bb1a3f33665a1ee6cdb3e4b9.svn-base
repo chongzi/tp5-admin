@@ -1,0 +1,310 @@
+<?php
+
+namespace Api\Server\Pay\Alipay;
+
+use \Pay\Alipay\Aop\AopClient;
+use \Pay\Alipay\Aop\Request\AlipayTradePagePayRequest;
+use \Pay\Alipay\Aop\Request\AlipayTradeWapPayRequest;
+use \Pay\Alipay\Aop\Request\AlipayTradeQueryRequest;
+use \Pay\Alipay\Aop\Request\AlipayTradeRefundRequest;
+use \Pay\Alipay\Aop\Request\AlipayTradeFastpayRefundQueryRequest;
+use \Pay\Alipay\Aop\Request\AlipayTradeCloseRequest;
+use \Pay\IPay;
+use \Pay\PayBase;
+
+class Alipay extends PayBase implements IPay
+{
+
+    protected $pay_type = 'Alipay';
+
+    protected $version = '';
+
+    protected $account;
+
+    protected $info;
+
+    public function __construct($option)
+    {
+        parent::__construct();
+
+        $this->config['notify_url'] = $this->baseUrl . 'notify/alipay' ;
+        $this->config['return_url'] = $this->baseUrl . 'return/alipay' ;
+
+        // 获取支付账户
+        //$this->account = isset($option['account']) ? $option['account'] : 'default';
+        // 获取支付账户配置
+        //$this->config = require_once "Config/" . ucfirst(strtolower($this->account)) . ".php";
+
+        //$this->config['notify_url'] = $this->baseUrl . 'notify/alipay/' . $this->account;
+        //$this->config['return_url'] = $this->baseUrl . 'return/alipay/' . $this->account;
+
+        /*if (empty($this->config['appid']) || trim($this->config['appid']) == "") {
+            throw new \Exception("appid should not be NULL!");
+        }
+        if (empty($this->config['private_key']) || trim($this->config['private_key']) == "") {
+            throw new \Exception("private_key should not be NULL!");
+        }
+        if (empty($this->config['alipay_public_key']) || trim($this->config['alipay_public_key']) == "") {
+            throw new \Exception("alipay_public_key should not be NULL!");
+        }
+        if (empty($this->config['charset']) || trim($this->config['charset']) == "") {
+            throw new \Exception("charset should not be NULL!");
+        }
+        if (empty($this->config['gateway_url']) || trim($this->config['gateway_url']) == "") 
+        {
+            throw new \Exception("gateway_url should not be NULL!");
+        }*/
+    }
+
+    
+
+    public function init($info)
+    {
+        $this->info = $info;
+    }
+
+    public function returnUrl()
+    {
+
+    }
+
+    public function notifyUrl()
+    {
+        $this->loadConfigByOrdersn($_POST['out_trade_no']);
+
+        $aop = new AopClient();
+
+        $aop->alipayrsaPublicKey = $this->config["alipay_public_key"];
+
+        $flag = $aop->rsaCheckV1($_POST, $aop->alipayrsaPublicKey, $this->config["sign_type"]);
+
+        //验证成功
+        if ($flag) 
+        {
+            //商户订单号
+            $out_trade_no = $_POST['out_trade_no'];
+            //支付宝交易号
+            $trade_no = $_POST['trade_no'];
+            //交易状态
+            $trade_status = $_POST['trade_status'];
+            //logResult('alipay'.$this->version.'verify_result ok');
+            if ($_POST['trade_status'] == 'TRADE_FINISHED')
+            {
+                //注意：
+                //退款日期超过可退款期限后（如三个月可退款），支付宝系统发送该交易状态通知
+            }
+            else if($_POST['trade_status'] == 'TRADE_SUCCESS')
+            {
+                //注意：
+                //付款完成后，支付宝系统发送该交易状态通知
+                $data = array(
+                    'money' => $_POST['total_amount'],
+                    'order_sn' => $out_trade_no,
+                );
+                if($this->paySuccess($data))
+                {
+                    echo "success";
+                }
+                else
+                {
+                    echo 'fail';
+                }
+            }
+            
+        } 
+        else 
+        {
+            echo "fail";
+        }
+    }
+
+    public function closeOrder($out_trade_no)
+    {
+        $data = array(
+            'out_trade_no' => $out_trade_no,
+        );
+
+        // 构造请求参数
+        $request = new AlipayTradeCloseRequest();
+        $request->setBizContent(json_encode($data, JSON_UNESCAPED_UNICODE));
+
+        $response = $this->aopclientRequestExecute($request);
+        $response = $response->alipay_trade_close_response;
+        if($response->code == 10000)
+        {
+            return true;
+        }
+        $this->error = $response->sub_msg;
+        return false;
+    }
+
+    public function orderQuery($out_trade_no)
+    {
+        $data = array(
+            'out_trade_no' => $out_trade_no,
+        );
+
+        $request = new AlipayTradeQueryRequest();
+        $request->setBizContent(json_encode($data, JSON_UNESCAPED_UNICODE));
+        $response = $this->aopclientRequestExecute($request);
+        $response = $response->alipay_trade_query_response;
+        
+        //var_dump($response);
+        if($response->code == 10000){
+            if($response->trade_status == 'TRADE_SUCCESS' || $response->trade_status == 'TRADE_SUCCESS') 
+            {
+                $this->error = '付款成功。';
+                return true;
+            }
+            if( $response->trade_status == 'TRADE_CLOSED' )
+            {
+                $this->error = '交易超时，或退款成功。';
+            }
+            if( $response->trade_status == 'WAIT_BUYER_PAY' )
+            {
+                $this->error = '等待付款。';
+            }
+            return false;
+        }
+        $this->error = $response->sub_msg;
+        return false;
+    }
+
+    public function refund($out_trade_no, $total_fee, $refund_fee)
+    {
+        $data = array(
+            'out_trade_no' => $out_trade_no,
+            'refund_amount' => $refund_fee,
+            'refund_reason' => '退款',
+            'out_request_no' => $out_trade_no . '_refund',
+        );
+        $request = new AlipayTradeRefundRequest();
+        $request->setBizContent(json_encode($data, JSON_UNESCAPED_UNICODE));
+
+        $response = $this->aopclientRequestExecute($request);
+        $response = $response->alipay_trade_refund_response;
+        if($response->code == 10000)
+        {
+            return true;
+        }
+        $this->error = $response->sub_msg;
+        return false;
+    }
+
+    public function refundQuery($out_trade_no)
+    {
+        $data = array(
+            'out_trade_no' => $out_trade_no,
+            'out_request_no' => $out_trade_no . '_refund',
+        );
+        $request = new AlipayTradeFastpayRefundQueryRequest();
+        $request->setBizContent(json_encode($data, JSON_UNESCAPED_UNICODE));
+
+        $response = $this->aopclientRequestExecute($request);
+        $response = $response->alipay_trade_fastpay_refund_query_response;
+        if($response->code == 10000)
+        {
+            return true;
+        }
+        $this->error = $response->sub_msg;
+        return false;
+    }
+
+    /**
+     * APP支付所需参数
+     * @return   array
+     */
+    public function app($account)
+    {
+        $this->loadConfig($account);
+        return array(
+            'appid'         => $this->config['appid'],
+            'partnerid'     => $this->config['partnerid'],
+            'email'         => $this->config['email'],
+            'privatekey'    => $this->config['private_key'],
+            'notify_url'    => $this->config['notify_url'],
+        );
+    }
+
+    /**
+     * PC支付
+     *     返回的是支付宝构造的表单，js自动执行提交，跳转到支付宝收银台完成支付
+     * @return   string
+     */
+    public function web()
+    {
+        $data = array(
+            'body' => $this->info['title'],
+            'subject' => $this->info['title'],
+            'out_trade_no' => $this->info['out_trade_no'],
+            'timeout_express' => '10m',
+            'total_amount' => $this->info['money'],
+            'product_code' => 'FAST_INSTANT_TRADE_PAY',
+        );
+        
+        $request = new AlipayTradePagePayRequest();
+
+        $request->setNotifyUrl($this->config['notify_url']);
+        $request->setReturnUrl($this->config['return_url']);
+        $request->setBizContent(json_encode($data, JSON_UNESCAPED_UNICODE));
+
+        $response = $this->aopclientRequestExecute($request, true);
+        $response = $response->alipay_trade_wap_pay_response;
+        return $response;
+    }
+
+    /**
+     * 同上
+     *    自动唤起支付宝完成支付
+     */
+    public function mobile()
+    {
+        $data = array(
+            'body'              => $this->info['title'],
+            'subject'           => $this->info['title'],
+            'out_trade_no'      => $this->info['out_trade_no'],
+            'timeout_express'   => '10m',
+            'total_amount'      => $this->info['money'],
+            'product_code'      => 'QUICK_WAP_WAY',
+        );
+
+        $request = new AlipayTradeWapPayRequest();
+
+        $request->setNotifyUrl($this->config['notify_url']);
+        $request->setReturnUrl($this->config['return_url']);
+        $request->setBizContent(json_encode($data, JSON_UNESCAPED_UNICODE));
+
+        $response = $this->aopclientRequestExecute($request, true);
+        $response = $response->alipay_trade_wap_pay_response;
+        return $response;
+    }
+
+    private function aopclientRequestExecute($request, $ispage = false)
+    {
+        $aop = new AopClient();
+        $aop->gatewayUrl = $this->config['gateway_url'];
+        $aop->appId = $this->config['appid'];
+        $aop->rsaPrivateKey = $this->config['private_key'];
+        $aop->alipayrsaPublicKey = $this->config['alipay_public_key'];
+        $aop->postCharset = $this->config['charset'];
+        $aop->signType = $this->config['sign_type'];
+
+        $aop->apiVersion = "1.0";
+        $aop->format = 'json';
+        // 开启页面信息输出
+        $aop->debugInfo = true;
+        if($ispage)
+        {
+            $result = $aop->pageExecute($request, "post");
+            echo $result;
+        }
+        else
+        {
+            $result = $aop->execute($request);
+        }
+
+        //打开后，将报文写入log文件
+        //$this->writeLog("response: " . var_export($result, true));
+        return $result;
+    }
+}

@@ -1,0 +1,130 @@
+{extend name="layout/common" /} {block name="header"} {/block} {block name="body"}
+<div class="row">
+    <div class="col-md-12">
+        <div class="box box-success">
+            <div class="box-header with-border">
+            </div>
+            <form method="post" action="{:Url('upd')}" enctype="multipart/form-data" role="form" class="form-inline">
+                <table class="table table-hover table-bordered">
+                    <tbody>
+                        <tr>
+                            <td colspan="3">
+                                <h3>编辑题目</h3></td>
+                            </tr>
+                            <tr>
+                                <td>应用：</td>
+                                <td>
+                                    <select name="app_id" id="status" class="form-control">
+
+                                        {volist name="app" id="vo"} 
+                                        {if condition="$type == 'edit'"}
+                                            {if condition="$vo['id'] eq $info['app_id']"}
+                                            <option value="{$vo['id']}" selected="true">{$vo.title}</option>
+                                            {else /}
+                                            <option value="{$vo['id']}">{$vo.title}</option>
+                                            {/if} 
+                                        {else/}
+                                            <option value="{$vo['id']}">{$vo.title}</option>
+                                        {/if}
+                                        {/volist}
+
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td width="200px">题目：</td>
+                                <td>
+                                    {notempty name="info.id"}
+                                    <input type="hidden" name="id" value="{$info['id']}" />{/notempty}
+                                    <input  size="16" type="text" value="{$info['name']}" name="name" class="form-control" style="width: 500px;" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>文件题目：</td>
+                                <td>
+                                    <input size="16" type="file" name="mp3_name" id="ico" class="form-control" /> {if condition=" !empty($info['mp3_name']) "}
+                                   <embed  src="{$info['mp3_name']}" width="200" height="45" />
+                                    <input type="hidden" name="ico" value="{$info.mp3_name}" id="ico" /> {/if}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td width="200px">答案：</td>
+                               
+                                    <td id="addParent" num="{:count($info['options'])}">
+                                        <button type='button' class="btn btn-primary" id="addAnswer">添加</button>
+                                        {if condition='$type == "edit"'}
+                                            
+                                           {volist name="info['options']" id="vo"}
+                                           答案 <input  size="16" type="text" value="{$vo.op}" name="options[{$key}][op]" class="form-control" style="width: 40px;"/> 
+                                           <input  size="16" type="text" value="{$vo.name}" name="options[{$key}][name]" class="form-control" style="width: 400px;" />
+                                           {/volist}
+                                          
+                                        {else/}
+                                
+                                        {/if}
+
+                                   </td>
+                            
+
+                         </tr>
+                         <tr>
+                            <td>正确答案：</td>
+                            <td>
+                                {if condition='$type == "edit"'}
+                                <select name="answer"  class="form-control right_answer">
+                                    {volist name="info['options']" id="vo"} 
+                                    {if condition="$vo['is_answer'] == 1"}
+                                    <option value="{$vo['op']}" selected>{$vo['op']} : {$vo.name}</option>
+                                    {else/}
+                                    <option value="{$vo['op']}">{$vo['op']} : {$vo.name}</option>
+                                    {/if} 
+                                    {/volist}
+
+                                </select>
+                                {else/}
+                                  <input  size="16" type="text" value="" placeholder="A" name="answer" class="form-control" style="width: 100px;" />   
+                                {/if}
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td width="200">难度：</td>
+                            <td>
+                                <input  size="16" type="text" value="{$info['difficulty']}"  name="difficulty" class="form-control" style="width: 400px;" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td width="200">排序：</td>
+                            <td>
+                                <input  size="16" type="text" value="{$info['sort']}"  name="sort" class="form-control" style="width: 400px;" />
+                            </td>
+                        </tr>    
+
+                    </tbody>
+                </table>
+                <div class="row-fluid" style="margin-top: 20px;margin-left: 200px;padding-bottom:20px;">
+                    {notempty name="info.id"}
+                    <input type="hidden" name="id" value="{$info['id']}" />{/notempty}
+                    <button class="btn btn-primary" type="submit">提交</button>
+                    <button class="btn" type="reset" style="margin-left: 30px;">取消</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{/block} {block name="script"}
+<script type="text/javascript" src="/static/plupload-2.1.2/js/plupload.full.min.js"></script>
+<script type="text/javascript" src="/static/plupload-2.1.2/js/upload2.js"></script>
+<script>
+    $(function(){
+         var n = $('#addParent').attr('num');
+        $('#addAnswer').click(function(){
+            var html = '</br>答案 <input  size="16" type="text" value="" name="options['+n+'][op]" class="form-control" style="width: 40px;"/> <input  size="16" type="text" value="" name="options['+n+'][name]" class="form-control" style="width: 400px;"/>';
+            $('#addParent').append(html);
+            n++;
+        })
+
+    })
+    
+</script>
+{/block}

@@ -1,0 +1,20 @@
+{php}$selected = isset($info['pid']) ? $info['pid'] : 0 ;{/php}
+<option value="0" {$selected == 0 ? 'selected' : ''}>顶级菜单</option>
+{volist name="tree" id="menu"}
+<option value="{$menu->id}" {$selected == $menu->id ? 'selected' : ''}>{$menu->title}</option>
+
+{php}$subTree = $menu->children();{/php}
+{if condition="!empty($subTree)"}
+    {volist name="subTree" id="menu"}
+    <option value="{$menu->id}" {$selected == $menu->id ? 'selected' : ''}>&nbsp;&nbsp;└ {$menu->title}</option>
+    
+    {php}$subTree = $menu->children();{/php}
+    {if condition="!empty($subTree)"}
+        {volist name="subTree" id="menu"}
+        <option value="{$menu->id}" {$selected == $menu->id ? 'selected' : ''}>&nbsp;&nbsp;&nbsp;&nbsp;└ {$menu->title}</option>
+        {/volist}
+    {/if}
+    
+    {/volist}
+{/if}
+{/volist}

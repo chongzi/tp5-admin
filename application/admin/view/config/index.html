@@ -1,0 +1,53 @@
+{extend name="layout/common" /}
+
+{block name="header"}
+<section class="content-header">
+    <h1>
+        配置管理
+    </h1>
+</section>
+{/block}
+
+{block name="body"}
+<div class="row">
+<div class="col-xs-12">
+<div class="box box-success">
+    <div class="box-header">
+    </div>
+    
+    <div class="box-body">
+        <table class="table table-hover table-bordered">
+            <tr>
+                <th><input type="checkbox" class="checkbox check-all"></th>
+                <th>ID</th>
+                <th>名称</th>
+                <th>标题</th>
+                <th>分组</th>
+                <th>类型</th>
+                <th>操作</th>
+            </tr>
+
+            {volist name="configs" id="config"}
+            <tr>
+                <td><input type="checkbox" class="checkbox"></td>
+                <td>{$config->id}</td>
+                <td>{$config->name}</td>
+                <td>{$config->title}</td>
+                <td>{$config->group()}</td>
+                <td>{$config->type()}</td>
+                <td>
+                    <a href="{:url('admin/config/edit', ['id'=>$config['id']])}" class="label label-success">编辑</a>
+                    <a href="{:url('admin/config/delete', ['id'=>$config['id']])}" class="label label-danger confirm delete">删除</a>
+                </td>
+            </tr>
+            {/volist}
+        </table>
+    </div>
+
+    <div class="box-footer clearfix">
+        <a href="{:url('admin/config/create')}" type="button" class="btn btn-success btn-sm">添加<i class="fa fa-fw fa-plus"></i></a>
+    </div>
+</div>
+</div>
+</div>
+{/block}

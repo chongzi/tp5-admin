@@ -1,0 +1,32 @@
+<?php
+namespace pscws;
+require 'PSCWS4.php';
+class Pscws 
+{
+    
+    function __construct()
+    {
+        
+    }
+
+    public function separate($text)
+    {
+		$pscws = new PSCWS4('utf8');
+
+		$pscws->set_dict(dirname(__FILE__) .'/etc/dict.xdb');
+		$pscws->set_rule(dirname(__FILE__) .'/etc/rules.ini');
+		$pscws->set_ignore(true);
+		$pscws->send_text($text);
+		while ($words = $pscws->get_result())
+		{
+			foreach ($words as $word)
+			{
+				//dump($word);
+				$arr[] = $word["word"];
+			}
+		}
+		//$words = $pscws->get_tops(1);
+		$pscws->close();
+		return $arr;
+    }
+}

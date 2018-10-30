@@ -1,0 +1,164 @@
+<?php
+/**
+ * Redis 缓存
+ * writen by: gHOST
+ * date: 2015-01-19
+ */
+namespace base;
+
+class RedisCache {
+    static private $instance = null;
+    static private $enabled = false;
+
+    private function __construct($config) {
+        if(empty($config)) {
+            $config = array(
+                'host'     => '127.0.0.1',
+                'port'     => '6379',
+                'pconnect' => false,
+            );
+            if(!empty($config['host']) && !empty($config['port'])) {
+                $conn = false;
+                try {
+                    self::$instance = new \Redis();
+                    if(isset($config['pconnect']) && $config['pconnect']) {
+                        $conn = @self::$instance->pconnect($config['host'], $config['port']);
+                    } else {
+                        $conn = @self::$instance->connect($config['host'], $config['port']);
+                    }
+                } catch (RedisException $e) { }
+                self::$enabled = $conn ? true : false;
+            }
+        }
+        return self::$enabled;
+    }
+
+    static public function getInstance($config = null) {
+        static $instance;
+        // $config['pconnect'] = true;
+        if(empty($instance)) {
+            $instance = new RedisCache($config);
+        }
+        return $instance->enabled() ? $instance : false;
+    }
+
+    public function enabled() {
+        return self::$enabled;
+    }
+
+    public function get($key) {
+        return self::$instance->get($key);
+    }
+
+    public function getMulti($keys) {
+        $data = self::$instance->getMultiple($keys);
+        $result = array();
+        $index = 0;
+        foreach($keys as $key) {
+            if($data[$index] !== false) {
+                $result[$key] = $data[$index];
+            }
+            $index++;
+        }
+        unset($data);
+
+        //return $result();
+        return $result;
+    }
+
+    public function select($db = 0) {
+        return self::$instance->select($db);
+    }
+
+    public function set($key, $value, $ttl = 0) {
+        if($ttl) {
+            return self::$instance->setex($key, $ttl, $value);
+        } else {
+            return self::$instance->set($key, $value);
+        }
+    }
+
+    public function del($key) {
+        return self::$instance->delete($key);
+    }
+
+    public function clear() {
+        return $this->clean();
+    }
+
+    public function clean() {
+        return self::$instance->flushAll();
+    }
+
+    public function inc($key, $step = 1) {
+        return self::$instance->incr($key, $step);
+    }
+
+    public function dec($key, $step = 1) {
+        return self::$instance->decr($key, $step);
+    }
+
+    public function getSet($key, $value) {
+        return self::$instance->getSet($key, $value);
+    }
+
+    public function sADD($key, $value) {
+        return self::$instance->sADD($key, $value);
+    }
+
+    public function sRemove($key, $value) {
+        return self::$instance->sRemove($key, $value);
+    }
+
+    public function sMembers($key) {
+        return self::$instance->sMembers($key);
+    }
+
+    public function sIsMember($key, $member) {
+        return self::$instance->sismember($key, $member);
+    }
+
+    public function keys($key) {
+        return self::$instance->keys($key);
+    }
+
+    public function expire($key, $second) {
+        return self::$instance->expire($key, $second);
+    }
+
+    public function sCard($key) {
+        return self::$instance->sCard($key);
+    }
+
+    public function hSet($key, $field, $value) {
+        return self::$instance->hSet($key, $field, $value);
+    }
+
+    public function hDel($key, $field) {
+        return self::$instance->hDel($key, $field);
+    }
+
+    public function hLen($key) {
+        return self::$instance->hLen($key);
+    }
+
+    public function hVals($key) {
+        return self::$instance->hVals($key);
+    }
+
+    public function hIncrBy($key, $field, $incr) {
+        return self::$instance->hIncrBy($key, $field, $incr);
+    }
+
+    public function hGetAll($key) {
+        return self::$instance->hGetAll($key);
+    }
+
+    public function sort($key, $opt) {
+        return self::$instance->sort($key, $opt);
+    }
+
+    public function exists($key) {
+        return self::$instance->exists($key);
+    }
+}

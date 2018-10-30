@@ -1,0 +1,109 @@
+{extend name="layout/common" /}
+
+{block name="header"}
+<section class="content-header">
+    <h1>
+        模块管理
+    </h1>
+</section>
+{/block}
+
+{block name="body"}
+<div class="row">
+	<div class="col-xs-12">
+		<form method="POST" id="form_list" name="form_list">
+			<div class="box box-success">
+			    <div class="box-header">
+			        <a href="{:url('admin/group/create')}" type="button" class="btn btn-success btn-sm">添加<i class="fa fa-fw fa-plus"></i></a>
+			    </div>
+			    <div class="box-body">
+			        <table class="table table-hover table-bordered">
+			            <tr>
+			                <th ><input id="all"   type="checkbox"  onclick="chk_all()" /></th>
+					        <th >表名</th>
+					        <th >视图层(view)</th>
+					        <th >控制器(controller)</th>
+					        <th >服务层(service)</th>
+					        <th >逻辑层(logic)</th>
+					        <th >模型层(model)</th>
+					        <th >数据验证(validate)</th>
+			            </tr>
+			            {volist name="list" id="vo" }
+				            <tr>
+				                <td>
+				                    <input class="check-all" type="checkbox" onclick="chk_child(this)" value="{$vo.table_name}" name="table_name[]" />
+				                </td>
+				                <td>{$vo.table_name}</td>
+				                <td>
+				                    {if condition="$vo['view_status']"}
+				                        <!-- <input class="check-all" type="checkbox" value="{$vo.table_name}" name="table_name[]" checked/> -->
+				                        <a>已生成<a>
+				                    {else /}
+				                        <input class="check-all {$vo.table_name}" type="checkbox" value="{$vo.table_name}|view" name="type_name[]" /><a style="color:red;">未生成<a>
+				                    {/if}
+				                </td>
+				                <td>
+				                    {if condition="$vo['controller_status']"}
+				                        <!-- <input class="check-all" type="checkbox" value="{$vo.table_name}" name="table_name[]" checked/> -->
+				                        <a>已生成<a>
+				                    {else /}
+				                        <input class="check-all {$vo.table_name}" type="checkbox" value="{$vo.table_name}|controller" name="type_name[]" /><a style="color:red;">未生成<a>
+				                    {/if}
+				                </td>
+				                <td>
+				                    {if condition="$vo['service_status']"}
+				                        <!-- <input class="check-all" type="checkbox" value="{$vo.table_name}" name="table_name[]" checked/> -->
+				                        <a>已生成<a>
+				                    {else /}
+				                        <input class="check-all {$vo.table_name}" type="checkbox" value="{$vo.table_name}|service" name="type_name[]" /><a style="color:red;">未生成<a>
+				                    {/if}
+				                </td>
+				                <td>
+				                    {if condition="$vo['logic_status']"}
+				                        <!-- <input class="check-all" type="checkbox" value="{$vo.table_name}" name="table_name[]" checked/> -->
+				                        <a>已生成<a>
+				                    {else /}
+				                        <input class="check-all {$vo.table_name}" type="checkbox" value="{$vo.table_name}|logic" name="type_name[]" /><a style="color:red;">未生成<a>
+				                    {/if}
+				                </td>
+				                <td>
+				                    {if condition="$vo['model_status']"}
+				                        <!-- <input class="check-all" type="checkbox" value="{$vo.table_name}" name="table_name[]" checked/> -->
+				                        <a>已生成<a>
+				                    {else /}
+				                        <input class="check-all {$vo.table_name}" type="checkbox" value="{$vo.table_name}|model" name="type_name[]" /><a style="color:red;">未生成<a>
+				                    {/if}
+				                </td>
+				                <td>
+				                    {if condition="$vo['validate_status']"}
+				                        <!-- <input class="check-all" type="checkbox" value="{$vo.table_name}" name="table_name[]" checked/> -->
+				                        <a>已生成<a>
+				                    {else /}
+				                        <input class="check-all {$vo.table_name}" type="checkbox" value="{$vo.table_name}|validate" name="type_name[]" /><a style="color:red;">未生成<a>
+				                    {/if}
+				                </td>
+				            </tr>
+			        	{/volist}
+			        </table>
+			    </div>
+			    <div class="box-header">
+			        <a type="button" class="btn btn-success btn-sm" onclick="form_submit('form_list','{:url('module/creates')}','您确定生成吗？')" >生成</a>
+			    </div>
+			</div>
+		</form>
+	</div>
+</div>
+<script type="text/javascript">
+	function chk_child(obj)
+	{
+	    if($(obj).prop("checked"))
+	    {
+	        $("."+obj.value).prop("checked",true);
+	    }
+	    else
+	    {
+	        $("."+obj.value).prop("checked",false);
+	    }
+	}
+</script>
+{/block}

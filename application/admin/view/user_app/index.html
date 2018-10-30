@@ -1,0 +1,110 @@
+{extend name="layout/common" /}
+
+{block name="header"}
+<section class="content-header">
+    <h1>
+        应用用户管理
+    </h1>
+</section>
+{/block}
+
+{block name="body"}
+<div class="row">
+    <div class="col-xs-12">
+
+        <div class="box box-success">
+
+            <div class="box-header">
+                <form method="get" action="{:url('index')}" id="search" role="form" class="form-inline">
+                    <input  type="text" name="title" value="{$search.title}" placeholder="请输入你要查找的id" class="form-control"/>
+                    <select style="width:130px;" name="app_id">
+                        <option value="0">应用名--</option>
+                        {volist name="app_list" id="vo"}
+                        <option value="{$vo.id}" {if condition="$search['app_id'] == $vo['id']"}selected="true"{/if}>{$vo.title}</option>
+                        {/volist}
+                    </select>
+                     排序：
+                    <select style="width:130px;" id="order" name="order">
+                        <option value="0">ID--</option>
+                        <option value="played_num" {if condition="$search['order'] == 'played_num'"}selected="true"{/if}>已玩次数--</option>
+                        <option value="succ_num" {if condition="$search['order'] == 'succ_num'"}selected="true"{/if}>通关次数--</option>
+                        <option value="max_score" {if condition="$search['order'] == 'max_score'"}selected="true"{/if}>最高分--</option>
+                        <option value="money" {if condition="$search['order'] == 'money'"}selected="true"{/if}>平台币--</option>
+                    </select>
+                    <a class="btn btn-success btn-sm"  href="javascript:$('#search').submit();" id="search" >搜  索</a>
+                   
+                    
+                </form>
+
+            </div>
+            <form method="POST" id="form_list" name="form_list">
+                <div class="box-body">
+                    <table class="table table-hover table-bordered">
+                        <tr>
+                            <th ><input id="all"   type="checkbox"  onclick="chk_all()" /></th>
+                            <th class="">id</th>
+                            <th class="">昵称</th>
+                            <th class="">头像</th>
+                            <th class="">应用名</th>
+                            <th class="">应用图标</th>
+                            <!--      <th class="">可玩次数</th> -->
+                            <th class="">已玩次数</th>
+                            <th class="">通关次数</th>
+                            <th class="">最高分数</th>
+                            <th class="">平台币</th>
+                            <th class="">初玩时间</th>
+                            <th class="">最后一次玩时间</th>
+                            <th class="">操作</th>
+                        </tr>
+                        {volist name="list" id="vo"}
+                        <tr>
+                            <td>
+                                <input class="check-all" type="checkbox"  value="{$vo.id}" name="id[]" />
+                            </td>
+                            <td>{$vo.id}</td>
+                            <td>{$vo.nick_name}</td>
+                            <td>
+                                {if condition=" !empty($vo['face']) "}
+                                <img class="imgUpload" src="{$vo.face}" height="40" data-id="{$vo.id}">
+                                {else/}
+                                <img class="imgUpload" src="/Public/Admin/images/none.jpg" height="40" data-id="{$vo.id}">
+                                {/if}
+                            </td>
+                            <td>{$vo.title}</td>
+                            <td>
+                                {if condition=" !empty($vo['ico']) "}
+                                <img class="imgUpload" src="{$vo.ico}" height="40" data-id="{$vo.id}">
+                                {else/}
+                                <img class="imgUpload" src="/Public/Admin/images/none.jpg" height="40" data-id="{$vo.id}">
+                                {/if}
+                            </td>
+                            <!-- <td>{$vo.playable_num}</td> -->
+                            <td>{$vo.played_num}</td>
+                            <td>{$vo.succ_num}</td>
+                            <td>{$vo.max_score}</td>
+                            <td>{$vo.money}</td>
+                            <td>{$vo.add_time|date="Y-m-d H:i",###}</td>
+                            <td>{if condition="$vo['upd_time'] != 0"}{$vo.upd_time|date="Y-m-d H:i",###}{else/}{$vo.add_time|date="Y-m-d H:i",###}{/if}</td>
+                            <td>
+                                
+                                <a href="{:url('edit?id='.$vo['id'])}" class="label label-success">编辑</a>&nbsp;&nbsp;&nbsp;&nbsp;
+                                <a href="javascript:drop_confirm('您确定要删除吗?','{:url('del?id='.$vo['id'])}')"  class="label label-danger">删除</a>
+                            </td>
+                            
+                        </tr>
+                        {/volist}
+                    </table>
+                    <div class="h_pagination" style="padding-top: 15px;">
+                        <div style="width:130px;">总条数 : {$count}</div>
+                        {$list->render()}
+                    </div>
+                </div>
+                <div class="box-header" style="padding-bottom:20px;">
+
+                  <a class="btn btn-success btn-sm" onclick="form_submit('form_list','{:url('del')}','您确定删除吗？')">删除</a>
+              </div>
+          </form>
+      </div>
+  </div>
+</div>
+{/block}

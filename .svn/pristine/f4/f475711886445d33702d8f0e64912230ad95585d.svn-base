@@ -1,0 +1,9 @@
+.env
+.idea
+composer.lock
+*.log
+thinkphp
+vendor
+runtime
+public/uploads
+db

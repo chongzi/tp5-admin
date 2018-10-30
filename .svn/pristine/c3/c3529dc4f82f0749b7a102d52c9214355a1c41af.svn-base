@@ -1,0 +1,17 @@
+<?php
+namespace aliyunOss;
+
+class config{
+    const AccessKeyID = "LTAIXrTkGK4TF6un";  //OSS的key  
+    const AccessKeySecret = '81ENeHp7Joyqqz2ZN9kIQ6uDYbAZ1C';   //oss秘钥
+    const RoleArn = 'acs:ram::1161783756593052:role/aliyunosstokengeneratorrole';  //OSS的Token AK
+    const TokenExpireTime = '900';  //指Android/iOS应用取到这个Token的失效时间，注意，最少是900s，默认值可以不修改。
+    const PolicyFile = 'sts-server/policy/bucket_read_write_policy.txt';
+    const Host = 'http://k1u-xh.oss-cn-shenzhen.aliyuncs.com';
+    const CallBackUrl = "https://xh.k1u.com/api/aliyun/web";  //H5回调的url
+    const EndpointDomain = "oss-cn-shenzhen.aliyuncs.com"; //oss节点
+    const Region = 'cn-shenzhen';    //OSS区域
+    const PipelineId = 'c198c51718e64a788f06cd3b3570f9ca';  //截图需要用的管道id
+    const Oss = 'oss-cn-shenzhen'; 
+    const BucketName = 'nq6-video'; 
+}

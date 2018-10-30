@@ -1,0 +1,811 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<script src="{$Think.config.__PUBLIC__}static/js/jqbs.min.js" type="text/javascript"></script>
+<title>游戏数据接口说明</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+<!--
+* {
+	font-size: 9pt;
+	line-height: 16px;
+}
+.style1 {
+	color: #03C;
+	font-weight: bold;
+	display: block;
+	cursor: pointer;
+	line-height: 25px;
+}
+th {
+	text-align: left;
+	color: #FFF;
+	background-color: #09C;
+}
+.dtTABLE {
+	background-color: #999999;
+}
+.dtTR1 {
+	background-color: #CCCCCC;
+	font-weight: bold;
+}
+.dtTR2 {
+	background-color: #FFFFFF;
+}
+a:link, a:visited {
+	color: #0033FF;
+	text-decoration: underline;
+}
+a:hover {
+	color: #0066CC;
+	text-decoration: underline;
+}
+.STYLE2 {
+	color: #FF0000;
+	font-weight: bold;
+}
+.STYLE3 {
+	color: #FF0000
+}
+.lan {
+	font-weight: normal;
+	color: #00F;
+}
+.del {
+	text-decoration: line-through;
+	background-color: #FFEA97;
+}
+h2 {
+	border: #CCC double 1px;
+	height: 25px;
+	line-height: 25px;
+	padding: 2px;
+	margin: 5px;
+	text-indent: 10px;
+	font-size: 15px;
+	background: #F3F3F3
+}
+-->
+pre {
+	padding: 16px;
+	overflow: auto;
+	font-size: 85%;
+	line-height: 1.45;
+	background-color: #f6f8fa;
+	border-radius: 3px;
+}
+</style>
+<script type="text/javascript">
+  function closOpen(obj){
+  }
+
+  $(function(){
+   $("h2").each(function(){
+     $(this).click(function(){
+       $(this).next().eq(0).toggle()			   
+     });
+
+
+     $(this).next().eq(0).hide();
+   })
+ });
+
+</script>
+</head><body>
+
+  <span class="style1" style="color:red">所有接口以post方式</span>
+  <span class="style1" style="color:red">接口域名：{php}echo config('http_type').$_SERVER['HTTP_HOST'];{/php}</span>
+  <h2 class="style1" color="#FF0000" onClick="closOpen('sindex')">所有接口验证规则</h2>
+  <div id="sindex"> 调用所有接口前必须传入预先按照验证规则处理传入的所有参数，生成的参数以头部header的形式传入<br />
+
+    <pre>
+      <code>
+        {
+          tk:传入接口的所有数据按照字典排序（sort）后以 'key=value&'的形式生成字符串 （例如：app_id=5&app_type=wx ）
+          生成的字符串先 sha256加密再md5加密后得到字符串tk 例如（1f59b0b4b88bc1174a1aed35b12fc116）
+          Authorization:获取用户信息，调用后台注册接口返回的token的值 ，在该值前面连上'Bearer ' 例如：（Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiIiLCJ1aWQiOjMzNTZ9.F5xnyaWep7i3Cf6JUAoCDePEH-Y5PlmSgdQK6KGpmX_uQvHE_GMGpp9TLS4y8TuTA8tDgmAG90SGnjTL90tNeFM6Px6a7jrkVIrkQiTxtyxJOjFUoSwqNff5NEv2uuerqACzUh83_9k3aXi-sMzf2_NNxhgQ3CEva096cIbERrjsQ1cEZSODnW0oW7JfPGhZ3T2j6URTYbJ-1KgsJ5vgQpHkIjPiAfiyEYju4imKsckbcEc6DqY4xjtOT9ZfnzWRjaFgZUX79NcII4ktkzj1YgR6D_RRiYV1RVB1QveKkr4ncQUCNrbPIOTy1TWFQtJg-_AaOfHvgqiwIi0BYwNhx5Ja_evNcCp3kIV4Ng870FqpjDAOHAnvDzbouW_hD0rJvqLNdJY90q_gr02BmFzKxdwz45N8o9a6djE3m1H4jwWIZYS_8rl8qN_nM9_feCy3XypzIdLC3kMIaN2F-9E8oczW3mz14bym7raYtaPz_w6-IHBGCwLJ1h8MxQFR50F_B9k3JpUpqxLzIqP8eUiKbHAwtUQbXFWkHmcx92TlJ5mVqAvCe4SWoiN35XOdyRIsrgoAMli6-AA2nZkgXB1-rW3BFO2fueHPX3F1-CBh7ri2DCMdGSloH2LVerxcAny-7Qznt4Njad3bBdeP5WFcwFkSCIMuGTGuhAhLdtn-GII）
+        }
+      </code>
+    </pre>
+    <ul>
+      <li>
+        <h3>返回参数</h3>
+      </li>
+    </ul>
+    <pre>
+      <code>
+       {
+        "code": 1,(1:代表成功，0：代表失败)
+        "data": {},
+        "msg":  ''(错误消息，成功时则没有)
+
+      }
+    </code>
+  </pre>
+</div>
+<span class="style1">常用接口地址说明</span>
+<h2 class="style1" onClick="closOpen('sindex')">登入接口</h2>
+<div id="sindex"> 
+  <ul>
+    <li>
+      <h3>接口地址:{php}echo config('http_type').$_SERVER['HTTP_HOST'];{/php}/api/v1.user/login</h3>
+    </h3>
+  </li>
+  <li>
+    <h3>请求参数</h3>
+  </li>
+</ul>
+<pre>
+  <code>
+    {
+      app_id:应用id(后台添加获得,找后台要，整个app都是固定的),
+      app_type:'wx',(固定的),
+      code: '',登入code
+      encryptedData: userRes.encryptedData,
+      iv: userRes.iv,
+    }
+  </code>
+</pre>
+<ul>
+  <li>
+    <h3>返回参数</h3>
+  </li>
+</ul>
+<pre>
+  <code>
+   {
+    code : 1和0(1:代表成功,0:代表失败)
+    data:{
+    用户信息和session_key:用于解密群数据等
+  },
+  msg:""(错误消息，失败才有)
+}
+
+</code>
+</pre>
+</div>
+<h2 class="style1" onClick="closOpen('sindex')">提交分数接口地址（只要玩游戏了就调用该接口）</h2>
+<div id="sindex"> 
+  <ul>
+    <li>
+      <h3>接口地址:{php}echo config('http_type').$_SERVER['HTTP_HOST'];{/php}/api/v1.game/postScore</h3>
+    </h3>
+  </li>
+  <li>
+    <h3>请求参数</h3>
+  </li>
+</ul>
+<pre>
+  <code>
+    {
+      app_id:应用id(后台添加获得,找后台要，整个app都是固定的),
+      score:玩家玩的分数（int）,
+      is_succ: 是否通关（0：未通关,1：通关）,
+      is_help: 是否求助 （1：为求助）
+      form_id: 模板消息id
+    }
+  </code>
+</pre>
+<ul>
+  <li>
+    <h3>返回参数</h3>
+  </li>
+</ul>
+<pre>
+  <code>
+   {
+    code : 1和0(1:代表成功,0:代表失败)
+    data:{
+    max_score:"152.00",   最高分
+    money:"5.00",         已获得平台币
+    played_num:15,        已玩次数
+    succ_num:9  ,         成功通关次数
+    succ_money:1  ,       通关获得金币数
+    playable_num:5        剩余可玩次数
+  },
+  msg:""(错误消息，失败才有)
+}
+
+</code>
+</pre>
+</div>
+<h2 class="style1" onClick="closOpen('sindex')">获取用户信息接口地址</h2>
+<div id="sindex"> 
+  <ul>
+    <li>
+      <h3>接口地址:{php}echo config('http_type').$_SERVER['HTTP_HOST'];{/php}/api/v1.game/getUserInfo</h3>
+    </h3>
+  </li>
+  <li>
+    <h3>请求参数</h3>
+  </li>
+</ul>
+<pre>
+  <code>
+    {
+      app_id:应用id(后台添加获得,找后台要，整个app都是固定的),
+    }
+  </code>
+</pre>
+<ul>
+  <li>
+    <h3>返回参数</h3>
+  </li>
+</ul>
+<pre>
+  <code>
+   {
+    code : 1和0(1:代表成功,0:代表失败)
+    data:{
+    face:"1.jpg"   ,       头像
+    max_score:"152.00" ,   最高分
+    money:"5.00"    ,      挑战币
+    nick_name:"yancheng" , 昵称
+    playable_num:0 ,       剩余可玩次数
+    played_num:18 ,        已玩次数
+    succ_num:9   ,         通关次数
+    playable_num:5 ,       剩余可玩次数
+    total_num:296          总挑战数
+  },
+  msg:""(错误消息，失败才有)
+}
+
+</code>
+</pre>
+</div>
+
+<h2 class="style1" onClick="closOpen('sindex')">排行榜接口地址</h2>
+<div id="sindex"> 
+  <ul>
+    <li>
+      <h3>接口地址:{php}echo config('http_type').$_SERVER['HTTP_HOST'];{/php}/api/v1.game/topList</h3>
+    </h3>
+  </li>
+  <li>
+    <h3>请求参数</h3>
+  </li>
+</ul>
+<pre>
+  <code>
+    {
+      app_id:应用id(后台添加获得,找后台要，整个app都是固定的),
+      order:1,2,3 (1:玩的次数将序排列,2:成功通关次数降序排列,3:最高分降序排列。默认分数降序排列),
+      p:页码,
+      num:每页显示条数
+    }
+  </code>
+</pre>
+<ul>
+  <li>
+    <h3>返回参数</h3>
+  </li>
+</ul>
+<pre>
+  <code>
+   {
+      code : 1和0(1:代表成功,0:代表失败)
+      data:{
+        list: [{
+          face:"",               头像
+          id:7   ,               用户ID
+          max_score:"153.00" ,   最高分
+          nick_name:"yancheng",  昵称
+          played_num:18  ,       玩的次数
+          succ_num:9  ,          成功次数
+        }],
+        total_page:  2,             总页数
+      }
+     msg:""(错误消息，失败才有)
+  }
+
+</code>
+</pre>
+</div>
+<h2 class="style1" onClick="closOpen('sindex')">应用信息口地址（分享信息，规则，更多玩法等）</h2>
+<div id="sindex"> 
+  <ul>
+    <li>
+      <h3>接口地址:{php}echo config('http_type').$_SERVER['HTTP_HOST'];{/php}/api/v1.game/getAppInfo</h3>
+    </h3>
+  </li>
+  <li>
+    <h3>请求参数</h3>
+  </li>
+</ul>
+<pre>
+  <code>
+    {
+      app_id:应用id(后台添加获得,找后台要，整个app都是固定的),
+    }
+  </code>
+</pre>
+<ul>
+  <li>
+    <h3>返回参数</h3>
+  </li>
+</ul>
+<pre>
+  <code>
+   {
+    code : 1和0(1:代表成功,0:代表失败)
+    data:{
+      app_desc:"",              应用规则说明
+      title:"",                 应用名称
+      share_title:[],           分享名称数组
+      share_ico:"",             分享图标数组
+      status:1 ,                上线，下线状态  1：上线
+      play_total_num:1 ,        挑战总次数
+      more_app_info:[{          更多玩法
+        button_name:"玩下"      按钮名称
+        desc:"sdf"              玩法简介
+        id:1                    id
+        img:""                  logo
+        name:"他的"             名称
+        url:""                  跳转的appid
+      }]
+    },
+    msg:""(错误消息，失败才有)
+}
+
+</code>
+</pre>
+</div>
+<h2 class="style1" onClick="closOpen('sindex')">投诉接口</h2>
+<div id="sindex"> 
+  <ul>
+    <li>
+      <h3>接口地址:{php}echo config('http_type').$_SERVER['HTTP_HOST'];{/php}/api/v1.game/tousu</h3>
+    </h3>
+  </li>
+  <li>
+    <h3>请求参数</h3>
+  </li>
+</ul>
+<pre>
+  <code>
+    {
+      app_id:应用id(后台添加获得,找后台要，整个app都是固定的),
+      title:投诉内容
+    }
+  </code>
+</pre>
+<ul>
+  <li>
+    <h3>返回参数</h3>
+  </li>
+</ul>
+<pre>
+  <code>
+   {
+    code : 1和0(1:代表成功,0:代表失败)
+    data:{
+      add_time:"",            时间戳
+      ip:  ""                   ip
+    },
+    msg:""(错误消息，失败才有)
+}
+
+</code>
+</pre>
+</div>
+<h2 class="style1" onClick="closOpen('sindex')">分享接口</h2>
+<div id="sindex"> 
+  <ul>
+    <li>
+      <h3>接口地址:{php}echo config('http_type').$_SERVER['HTTP_HOST'];{/php}/api/v1.game/getShareQunInfo</h3>
+    </h3>
+  </li>
+  <li>
+    <h3>请求参数</h3>
+  </li>
+</ul>
+<pre>
+  <code>
+    {
+      app_id:应用id(后台添加获得,找后台要，整个app都是固定的),
+      session_key: '解密群ID需要',
+      iv:"",
+      encryptedData:"",
+      is_help:1   是否是求助  1为求助
+    }
+  </code>
+</pre>
+<ul>
+  <li>
+    <h3>返回参数</h3>
+  </li>
+</ul>
+<pre>
+  <code>
+   {
+    code : 1和0(1:代表成功,0:代表失败)
+    data:{
+      openGId:"tGRkkE5hfxZu64ZGFqdWqoqy4k-oY" ,      群id
+      playable_num:2                                  可玩次数
+    },
+    msg:""(错误消息，失败才有)
+}
+
+</code>
+</pre>
+</div>
+<span class="style1">礼物接口地址说明</span>
+<h2 class="style1" onClick="closOpen('sindex')">获取礼物列表接口地址</h2>
+<div id="sindex"> 
+  <ul>
+    <li>
+      <h3>接口地址:{php}echo config('http_type').$_SERVER['HTTP_HOST'];{/php}/api/v1.gift/getGiftList</h3>
+    </h3>
+  </li>
+  <li>
+    <h3>请求参数</h3>
+  </li>
+</ul>
+<pre>
+  <code>
+    {
+      app_id:应用id(后台添加获得,找后台要，整个app都是固定的),
+    }
+  </code>
+</pre>
+<ul>
+  <li>
+    <h3>返回参数</h3>
+  </li>
+</ul>
+<pre>
+  <code>
+   {
+    code : 1和0(1:代表成功,0:代表失败)
+    data:[{
+      desp:"bbb"  ,    描述
+      id:2    ,        礼物id
+      img:""   ,       图片
+      money:600  ,     挑战币(兑换金额以这个为主)
+      name:"微课" ,    礼物名
+      price:"200.00"  后台设置礼物价格
+    }],
+    msg:""(错误消息，失败才有)
+  }
+
+</code>
+</pre>
+</div>
+
+<h2 class="style1" onClick="closOpen('sindex')">兑换礼物接口地址</h2>
+<div id="sindex"> 
+  <ul>
+    <li>
+      <h3>接口地址:{php}echo config('http_type').$_SERVER['HTTP_HOST'];{/php}/api/v1.gift/changeGift</h3>
+    </h3>
+  </li>
+  <li>
+    <h3>请求参数</h3>
+  </li>
+</ul>
+<pre>
+  <code>
+    {
+      app_id:""     应用id(后台添加获得,找后台要，整个app都是固定的),
+      gift_id:""    礼物id,
+      name:""       姓名,
+      phone:""      手机号,
+      addr:""       收货地址
+    }
+  </code>
+</pre>
+<ul>
+  <li>
+    <h3>返回参数</h3>
+  </li>
+</ul>
+<pre>
+  <code>
+   {
+    code : 1和0(1:代表成功,0:代表失败)
+    data:[{
+      app_id:"1" ,   应用id
+      gift_id:"1"   礼品id
+    }],
+    msg:""(错误消息，失败才有)
+  }
+
+</code>
+</pre>
+</div>
+
+
+<h2 class="style1" onClick="closOpen('sindex')">领奖记录接口地址</h2>
+<div id="sindex"> 
+  <ul>
+    <li>
+      <h3>接口地址:{php}echo config('http_type').$_SERVER['HTTP_HOST'];{/php}/api/v1.gift/myGiftList</h3>
+    </h3>
+  </li>
+  <li>
+    <h3>请求参数</h3>
+  </li>
+</ul>
+<pre>
+  <code>
+    {
+      app_id:应用id(后台添加获得,找后台要，整个app都是固定的)
+    }
+  </code>
+</pre>
+<ul>
+  <li>
+    <h3>返回参数</h3>
+  </li>
+</ul>
+<pre>
+  <code>
+   {
+    code : 1和0(1:代表成功,0:代表失败)
+    data:[{
+      gift_id:1  ,           礼品id
+      gift_img:""  ,         礼品图片
+      gift_name:"3个月会员", 礼品名称
+      money:"300.00"   ,     兑换金额
+      status:1              礼品状态（状态（1：待发货，2：已发货,99：已收货））
+    }],
+    msg:""(错误消息，失败才有)
+  }
+
+</code>
+</pre>
+</div>
+<span class="style1">题目接口地址说明</span>
+<h2 class="style1" onClick="closOpen('sindex')">获取题目列表接口地址</h2>
+<div id="sindex"> 
+  <ul>
+    <li>
+      <h3>接口地址:{php}echo config('http_type').$_SERVER['HTTP_HOST'];{/php}/api/v1.questions/getQuestionList</h3>
+    </h3>
+  </li>
+  <li>
+    <h3>请求参数</h3>
+  </li>
+</ul>
+<pre>
+  <code>
+    {
+      app_id:应用id(后台添加获得,找后台要，整个app都是固定的),
+      num:题目数（默认10）
+    }
+  </code>
+</pre>
+<ul>
+  <li>
+    <h3>返回参数</h3>
+  </li>
+</ul>
+<pre>
+  <code>
+   {
+    code : 1和0(1:代表成功,0:代表失败)
+    data:[{
+      time:10,                           答题时间     
+      difficulty:1      ,                难度 倒序 1-9
+      name:"在何种情况下接球不算越位?" , 题目名
+      options:[{                         答案数组
+          is_answer: 0 || 1 ,            0:不是正确答案 ，1:是正确答案
+          name:""   ,                    答案名
+          op:"A",                        答案选项
+      }]                         
+    }],
+    msg:""(错误消息，失败才有)
+}
+
+</code>
+</pre>
+</div>
+<h2 class="style1" onClick="closOpen('sindex')">获取题目列表接口地址(一题一答)</h2>
+<div id="sindex"> 
+  <ul>
+    <li>
+      <h3>接口地址:{php}echo config('http_type').$_SERVER['HTTP_HOST'];{/php}/api/v1.questions/getQuestionMoney</h3>
+    </h3>
+  </li>
+  <li>
+    <h3>请求参数</h3>
+  </li>
+</ul>
+<pre>
+  <code>
+    {
+      app_id:应用id(后台添加获得,找后台要，整个app都是固定的)
+    }
+  </code>
+</pre>
+<ul>
+  <li>
+    <h3>返回参数</h3>
+  </li>
+</ul>
+<pre>
+  <code>
+   {
+    code : 1和0(1:代表成功,0:代表失败)
+    data:[{
+      name:"10",                           题目     
+      options:[{                         答案数组
+          name:""   ,                    答案名
+          op:"A",                        答案选项
+      }]                         
+    }],
+    msg:""(错误消息，失败才有)
+}
+
+</code>
+</pre>
+</div>
+<h2 class="style1" onClick="closOpen('sindex')">验证答案接口地址(一题一答)</h2>
+<div id="sindex"> 
+  <ul>
+    <li>
+      <h3>接口地址:{php}echo config('http_type').$_SERVER['HTTP_HOST'];{/php}/api/v1.questions/getAnswerMoney</h3>
+    </h3>
+  </li>
+  <li>
+    <h3>请求参数</h3>
+  </li>
+</ul>
+<pre>
+  <code>
+    {
+      app_id:1 ,    应用id(后台添加获得,找后台要，整个app都是固定的)
+      answer:"a"    用户选择答案（a,b,c,d）
+    }
+  </code>
+</pre>
+<ul>
+  <li>
+    <h3>返回参数</h3>
+  </li>
+</ul>
+<pre>
+  <code>
+   {
+    code : 1和0(1:代表成功,0:代表失败)
+    data:[{
+      is_answer:1/0,                     是否正确     
+      is_final:1/0                       是否答完                    
+    }],
+    msg:""(错误消息，失败才有)
+}
+
+</code>
+</pre>
+</div>
+<span class="style1">签到接口地址说明</span>
+<h2 class="style1" onClick="closOpen('sindex')">获取签到记录接口地址</h2>
+<div id="sindex"> 
+  <ul>
+    <li>
+      <h3>接口地址:{php}echo config('http_type').$_SERVER['HTTP_HOST'];{/php}/api/v1.game/userSignInfo</h3>
+    </h3>
+  </li>
+  <li>
+    <h3>请求参数</h3>
+  </li>
+</ul>
+<pre>
+  <code>
+    {
+      app_id:应用id(后台添加获得,找后台要，整个app都是固定的)
+    }
+  </code>
+</pre>
+<ul>
+  <li>
+    <h3>返回参数</h3>
+  </li>
+</ul>
+<pre>
+  <code>
+   {
+    code : 1  ,                 1和0(1:代表成功,0:代表失败)
+    data:{
+        list:[{                 签到规则
+          0:"3次"               第一天
+          1:"3次"
+          2:"5次"
+          3:"5次"
+          4:"8次"
+          5:"10次"
+          6:"兑换金币1枚"
+        }],
+        sign_count:0            连续签到总天数
+    },
+    msg:""(错误消息，失败才有)
+}
+
+</code>
+</pre>
+</div>
+<h2 class="style1" onClick="closOpen('sindex')">用户签到接口地址</h2>
+<div id="sindex"> 
+  <ul>
+    <li>
+      <h3>接口地址:{php}echo config('http_type').$_SERVER['HTTP_HOST'];{/php}/api/v1.game/userSignIn</h3>
+    </h3>
+  </li>
+  <li>
+    <h3>请求参数</h3>
+  </li>
+</ul>
+<pre>
+  <code>
+    {
+      app_id:应用id(后台添加获得,找后台要，整个app都是固定的)
+    }
+  </code>
+</pre>
+<ul>
+  <li>
+    <h3>返回参数</h3>
+  </li>
+</ul>
+<pre>
+  <code>
+   {
+    code : 1  ,                 1和0(1:代表成功,0:代表失败)
+    data:{
+        sign_count:0            连续签到总天数
+        playable_num:30         剩余可玩次数
+    },
+    msg:""(错误消息，失败才有)
+}
+
+</code>
+</pre>
+</div>
+
+
+<hr>
+
+<span class="style1">提现接口说明</span>
+<h2 class="style1" onClick="closOpen('sindex')">用户提现接口</h2>
+<div id="sindex"> 
+  <ul>
+    <li>
+      <h3>接口地址:{php}echo config('http_type').$_SERVER['HTTP_HOST'];{/php}/api/v1.money/changeMoney</h3>
+    </h3>
+  </li>
+  <li>
+    <h3>请求参数</h3>
+  </li>
+</ul>
+<pre>
+  <code>
+    {
+      app_id:"",              应用id(后台添加获得,找后台要，整个app都是固定的),
+      money:1,                提现金额
+    }
+  </code>
+</pre>
+<ul>
+  <li>
+    <h3>返回参数</h3>
+  </li>
+</ul>
+<pre>
+  <code>
+   {
+    code : 1和0(1:代表成功,0:代表失败)
+    data:{
+       change_code:""     提现码
+       use_money:1,       消耗平台币
+       f_money:1,         剩余平台币
+       change_money:1     提现人民币
+    },
+    msg:""(错误消息，失败才有)
+}
+
+</code>
+</pre>
+</div>
+
+</div>
+</body>
+</html>

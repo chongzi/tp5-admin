@@ -1,0 +1,121 @@
+<?php
+namespace app\admin\logic;
+use Think\Request;
+use think\Db;
+use think\Model;
+
+class UserGoods extends BaseLogic
+{
+    /*******************************基础配置开始*******************************/
+    
+    public $flag_opt = array();
+    public $id_alias = "user_goods_id";//主表与其他表关联的字段
+    private $flag_model = "";//标记模型
+    private $slave_model = "";//从表模型
+    private $slave_relation_field = "";//从表和主表关联字段
+
+    /*******************************基础配置结束*******************************/
+    private $goods_merge_type = "use_time"; //合并类型：num（合并数量）,use_time（延长使用时间）
+
+    function __construct()
+    {
+        $arr = explode("\\", __CLASS__);
+        $model = $arr[count($arr)-1];//获取当前模型
+        $mp["id_alias"] = $this->id_alias;
+        $mp["slave_model"] = $this->slave_model;
+        $mp["slave_relation_field"] = $this->slave_relation_field;
+        $mp["flag_model"] = $this->flag_model;
+        $mp["flag_opt"] = $this->flag_opt;
+        parent::__construct($model,$mp);
+    }
+
+    /**   
+    * 添加数据到我的商品中，如果商品已经存在，则延长使用时间
+    * 
+    * @access public 
+    * @param $list array 商品列表
+    * @return array 成功返回true，失败返回0或false
+    */
+    public function adds($list)
+    {
+        if($this->$goods_merge_type == "use_time")
+        {
+            foreach ($list as $row) 
+            {
+                $where["user_id"] = $row["user_id"];
+                $where["goods_id"] = $row["goods_id"];
+                $info = parent::infoBy($where);
+                if($info)
+                {
+                    if($row["use_time_limit"]==0)//使用时间永久有效
+                    {
+                        $info["use_end_time"] = 0;
+                    }
+                    else
+                    {
+                        $info["use_end_time"] += $row["use_time_limit"];
+                    }
+                    $res = parent::upd($info);
+                    if($res !== false)
+                    {
+                        $res = true;
+                    }
+                }
+                else
+                {
+                    $res = parent::add($info);
+                }
+                if(!$res)
+                {
+                    break;
+                }
+            }
+            return $res;
+        }
+        else
+        {
+            return parent::adds($list);
+        }
+    }
+    
+    /**   
+    * 是否拥有某商品的权限
+    * 
+    * @access public 
+    * @param $user_id int 用户id
+    * @param $type_id int 商品分类id
+    * @param $type_relate_val int 商品分类关联id
+    * @return array 拥有返回true，否则返回false
+    */
+    public function isOwn($user_id,$type_name,$type_relate_val)
+    {
+        $goods_type_list = logic("goods_type")->ownerListByName($type_name);
+        if(!$goods_type_list)
+        {
+            return false;
+        }
+        $goods_type_ids = array_column($goods_type_list,"id");
+        $res = false;
+        $where["user_id"] = $user_id;
+        $list = logic("user_goods")->listBy($where);
+        foreach ($list as $row) 
+        {
+            foreach ($goods_type_list as $r) 
+            {
+                if($row["goods_type_id"] == $r["id"])
+                {
+                    if($row["goods_type_relate_val"] == $type_relate_val || $row["goods_type_relate_val"] ==0)
+                    {
+                        $curr_time = time();
+                        if($row["use_end_time"] == 0 || ($curr_time>=$row["use_start_time"] && $curr_time<=$row["use_end_time"]))
+                        {
+                            $res = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        return $res;
+    }
+}

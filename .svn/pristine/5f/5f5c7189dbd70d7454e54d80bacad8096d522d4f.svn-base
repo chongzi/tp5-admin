@@ -1,0 +1,124 @@
+<?php
+namespace aliyunOss;
+use Sts\Request\V20150401 as Sts;
+
+class appupload {
+
+    private $AccessKeyID;
+    private $AccessKeySecret;
+    private $RoleArn;
+    private $TokenExpire;
+    private $PolicyFile;
+    public $data;
+
+    public function __construct($config = []){
+        $this->AccessKeyID = isset($config['AccessKeyID'])?$config['AccessKeyID']:config::AccessKeyID;
+        $this->AccessKeySecret = isset($config['AccessKeySecret'])?$config['AccessKeySecret']:config::AccessKeySecret;
+        $this->RoleArn = isset($config['RoleArn'])?$config['RoleArn']:config::RoleArn;
+        $this->TokenExpireTime = isset($config['TokenExpireTime'])?$config['TokenExpireTime']:config::TokenExpireTime;
+        $this->PolicyFile = isset($config['PolicyFile'])?$config['PolicyFile']:config::PolicyFile;
+    }
+
+    /**
+     *  获取app上传所需要用到的临时key
+     **/
+    public function oss_tmp_key() {
+        include_once __DIR__.'/sts-server/aliyun-php-sdk-core/Config.php';
+        $accessKeyID = $this->AccessKeyID;
+        $accessKeySecret = $this->AccessKeySecret;
+        $roleArn = $this->RoleArn;
+        $tokenExpire = $this->TokenExpireTime;
+        $policy = tool::read_file(__DIR__.'/'.$this->PolicyFile);
+        $iClientProfile = \DefaultProfile::getProfile("cn-shenzhen", $accessKeyID, $accessKeySecret);
+        $client = new \DefaultAcsClient($iClientProfile);
+        $request = new Sts\AssumeRoleRequest();
+        $request->setRoleSessionName("client_name");
+        $request->setRoleArn($roleArn);
+        $request->setPolicy($policy);
+        $request->setDurationSeconds($tokenExpire);
+        $response = $client->doAction($request);
+        $rows = array();
+        $body = $response->getBody();
+
+        $content = json_decode($body);
+        $rows['status'] = $response->getStatus();
+        if ($response->getStatus() == 200) {
+            $rows['AccessKeyId'] = $content->Credentials->AccessKeyId;
+            $rows['AccessKeySecret'] = $content->Credentials->AccessKeySecret;
+            $rows['Expiration'] = $content->Credentials->Expiration;
+            $rows['SecurityToken'] = $content->Credentials->SecurityToken;
+        } else {
+            $rows['AccessKeyId'] = "";
+            $rows['AccessKeySecret'] = "";
+            $rows['Expiration'] = "";
+            $rows['SecurityToken'] = "";
+        }
+        return $rows;
+    }
+
+    /**
+     *文件上传成功后 判断oss回调是否成功 返回bool值
+     *$this->data 为oss回调给我们的数据
+     */
+    public function osscallback() {
+        // 1.获取OSS的签名header和公钥url header
+        $authorizationBase64 = "";
+        $pubKeyUrlBase64 = "";
+        /** 注意：如果要使用HTTP_AUTHORIZATION头，你需要先在apache或者nginx中设置rewrite，以apache为例，修改
+        配置文件/etc/httpd/conf/httpd.conf(以你的apache安装路径为准)，在DirectoryIndex index.php这行下面增加以下两行
+        RewriteEngine On
+        RewriteRule .* - [env=HTTP_AUTHORIZATION:%{HTTP:Authorization},last]*/
+        if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
+            $authorizationBase64 = $_SERVER['HTTP_AUTHORIZATION'];
+        }
+        if (isset($_SERVER['HTTP_X_OSS_PUB_KEY_URL'])) {
+            $pubKeyUrlBase64 = $_SERVER['HTTP_X_OSS_PUB_KEY_URL'];
+        }
+
+        if ($authorizationBase64 == '' || $pubKeyUrlBase64 == '') {
+            header("http/1.1 403 Forbidden");
+            exit();
+        }
+        // 2.获取OSS的签名
+        $authorization = base64_decode($authorizationBase64);
+
+        // 3.获取公钥
+        $pubKeyUrl = base64_decode($pubKeyUrlBase64);
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $pubKeyUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+        $pubKey = curl_exec($ch);
+        if ($pubKey == "") {
+            header("http/1.1 403 Forbidden");
+            exit();
+        }
+
+        // 4.获取回调body
+        $body = file_get_contents('php://input');
+
+        // 5.拼接待签名字符串
+        $authStr = '';
+        $path = $_SERVER['REQUEST_URI'];
+        $pos = strpos($path, '?');
+        if ($pos === false) {
+            $authStr = urldecode($path) . "\n" . $body;
+        } else {
+            $authStr = urldecode(substr($path, 0, $pos)) . substr($path, $pos, strlen($path) - $pos) . "\n" . $body;
+        }
+        // 6.验证签名
+        $ok = openssl_verify($authStr, $authorization, $pubKey, OPENSSL_ALGO_MD5);
+        $data = json_decode($body, true);
+        if ($ok == 1 && is_array($data)) {
+            $this->data = $data;
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+
+
+
+
+}

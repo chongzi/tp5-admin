@@ -1,0 +1,184 @@
+$(function(){
+    function quick_date_select(startClass,endClass){
+        if($('input[name='+endClass+']').length == 1  ){
+            
+            var $startInput = $('input[name='+startClass+']') ;
+            var $endInput = $('input[name='+endClass+']');
+            var $handler =  $('<button class="btn_sel_time quick-date-select btn" style="vertical-align:top;margin-left:0px;">选择时间</button>');
+            var _list = '<ul class="dropdown nav-list" style="visibility:hidden;padding:0px;margin-left:3px">'+
+                        '<li data-time="today" style="list-style-type:none">今天</li>'+
+                        '<li data-time="yestoday" style="list-style-type:none">昨天</li>'+
+                        '<li data-time="lastday" style="list-style-type:none">前天</li>'+
+                        '<li data-time="thisweek" style="list-style-type:none">本周</li>'+
+                        '<li data-time="lastweek" style="list-style-type:none">上周</li>'+
+                        '<li data-time="thismonth" style="list-style-type:none">本月</li>'+
+                        '<li data-time="lastmonth" style="list-style-type:none">上月</li>'+
+                        '<li data-time="all" style="list-style-type:none">所有</li>'+
+                        '</ul>';
+            var $list = $(_list);
+            var $handler,$list,pos;
+            var render = function(type){
+                var d       = new Date();
+                var time    = d.getTime();
+                var year    = d.getFullYear();
+                var month   = d.getMonth() + 1;
+                var day     = d.getDate();
+                var weekDay = d.getDay();
+                
+                var start,end;
+                
+                start = end = year + '-' + month + '-' + day;
+                switch(type){
+                    case 'today':
+                        break;
+                    case 'yestoday':
+                        var yestoday = new Date();
+                        
+                        yestoday.setTime(time-86400 * 1000);
+                        year    = yestoday.getFullYear();
+                        month   = yestoday.getMonth() + 1;
+                        day     = yestoday.getDate();
+                        
+                        start = end = year + '-' + month + '-' + day;
+                        break;
+                    case 'lastday':
+                        var yestoday = new Date();
+                        
+                        yestoday.setTime(time-86400 * 2 * 1000);
+                        year    = yestoday.getFullYear();
+                        month   = yestoday.getMonth() + 1;
+                        day     = yestoday.getDate();
+                        
+                        start = end = year + '-' + month + '-' + day;
+                        break;
+                    case 'thisweek':
+                        var firstDay = new Date();
+                        
+                        firstDay.setTime(time-86400 * (weekDay - 1) * 1000);
+                        year    = firstDay.getFullYear();
+                        month   = firstDay.getMonth() + 1;
+                        day     = firstDay.getDate();
+                        
+                        start = year + '-' + month + '-' + day;
+                        break;
+                    case 'lastweek':
+                        var firstDay = new Date();
+                        var lastDay = new Date();
+                        
+                        firstDay.setTime(time-86400 * (weekDay + 6 ) * 1000 );
+                        year    = firstDay.getFullYear();
+                        month   = firstDay.getMonth() + 1;
+                        day     = firstDay.getDate();
+                        
+                        start = year + '-' + month + '-' + day;
+                        
+                        lastDay.setTime(time-86400 * weekDay  * 1000 );
+                        year    = lastDay.getFullYear();
+                        month   = lastDay.getMonth() + 1;
+                        day     = lastDay.getDate();
+                        
+                        end = year + '-' + month + '-' + day;
+                        break;
+                    case 'thismonth':
+                        start = year + '-' + month + '-1';
+                        break;
+                    case 'lastmonth':
+                        // start
+                        if(month == 1){
+                            year = year -1;
+                            month = 12;
+                        }else{
+                            month = month -1
+                        }
+                        start = year + '-' + month + '-1';
+                        
+                        // end
+                        var lastDay = new Date();
+                        
+                        lastDay.setTime(time-86400 * day * 1000 );
+                        year    = lastDay.getFullYear();
+                        month   = lastDay.getMonth() + 1;
+                        day     = lastDay.getDate();
+                        
+                        end = year + '-' + month + '-' + day;
+                        
+                        break;
+                    case 'all':
+                        start = "2016-01-01";
+                        end = "2020-01-01";
+                        break;
+                }
+                $startInput.val(start)
+                $endInput.val(end)
+            }
+            
+            $($handler).insertAfter($endInput);
+            $($list).insertAfter($handler);
+
+            pos = $handler.offset();
+            console.log(pos);
+            
+            $endInput.css({    
+                "border-top-right-radius": "0px",
+                "border-bottom-right-radius": "0px"
+            });
+            
+            $list.css({
+                'position':'absolute',
+                'top':pos.top-80,
+                'left':pos.left-250,
+                'background-color':'#fff',
+                'width':'85px',
+                'border':'1px solid #ccc',
+                'line-height':'24px',
+            });
+            
+            $list.children()
+            .css({
+                'width':'100%',
+                'border-top':'1px solid #ccc',
+                'cursor':'pointer',
+                'height':'24px',
+                'margin':'0',
+                'padding':'0',
+                'text-align':'center'
+            })
+            .on('click',function(e){
+                e.preventDefault();
+                e.stopPropagation();
+                var $tar = $(e.target)
+                var time = $tar.data('time')
+                
+                render(time);
+                
+                $list.css('visibility','hidden');
+            })
+            
+            $handler.on('click',function(e){
+
+                e.preventDefault();
+                e.stopPropagation();
+                var status = $list.css('visibility');
+                console.log('handler click')
+                
+                if( status == 'hidden'){
+                    $list.css('visibility','visible');
+                }else{
+                    $list.css('visibility','hidden');
+                }
+                $list.css('display','block')
+            })
+            
+        }
+    }
+    
+    [
+        {'start':'start_time','end':'end_time'},
+        {'start':'time-start','end':'time-end'},
+        {'start':'start_reg_time','end':'end_reg_time'},
+        {'start':'start_pay_time','end':'end_pay_time'},
+    ].forEach(function(obj){
+        quick_date_select(obj.start,obj.end)
+    })
+    
+});

@@ -1,0 +1,17 @@
+{
+  "Statement": [
+    {
+      "Action": [
+        "oss:GetObject",
+        "oss:PutObject",
+        "oss:DeleteObject",
+        "oss:ListParts",
+        "oss:AbortMultipartUpload",
+        "oss:ListObjects"
+      ],
+      "Effect": "Allow",
+      "Resource": ["acs:oss:*:*:nq6-video/*", "acs:oss:*:*:nq6-video"]
+    }
+  ],
+  "Version": "1"
+}

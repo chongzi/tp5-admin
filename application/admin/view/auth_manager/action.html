@@ -1,0 +1,98 @@
+{extend name="layout/common" /}
+
+{block name="header"}
+<section class="content-header">
+    <h1>
+        访问授权
+    </h1>
+</section>
+{/block}
+
+{block name="body"}
+<div class="row">
+<div class="col-xs-12">
+<div class="box box-success">
+<form action="{:url('admin/AuthManager/auth', ['id' => $thisGroup->id])}" method="POST" class="ajax-post">
+    <div class="box-header">
+        用户组：
+        <div class="btn-group">
+            <button type="button" class="btn btn-success">{$thisGroup->title}</button>
+            <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown">
+                <span class="caret"></span>
+                <span class="sr-only">Toggle Dropdown</span>
+            </button>
+            <ul class="dropdown-menu" role="menu">
+            {volist name="groups" id="group"}
+                <li><a href="{:url('admin/AuthManager/action', ['id' => $group->id])}">{$group->title}</a></li>
+            {/volist}
+            </ul>
+        </div>
+    </div>
+    
+    <div class="box-body">
+        <div class="row">
+            {volist name="tree" id="menu"}
+            <div class="col-md-12">
+                <div class="box box-primary">
+                    <div class="box-header with-border">
+                        <h3 class="box-title">
+                            <label>
+                                <input class="auth-checkbox main" type="checkbox" name="rules[]"
+                                    value="{$mainRules[$menu->url]}" 
+                                    {:in_array($mainRules[$menu->url], $groupRules) ? 'checked' : ''} >
+                                {$menu->title}
+                            </label>
+                        </h3>
+
+                        <div class="box-tools pull-right">
+                            <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                        </div>
+                    </div>
+                    <div class="box-body">
+                        
+                        {php}$subTree = $menu->children();{/php}
+                        <ul class="todo-list">
+                        {volist name="subTree" id="menu"}
+                            <li>
+                                <label>
+                                    <input class="auth-checkbox" type="checkbox" name="rules[]"
+                                        value="{$childRules[$menu->url]}" 
+                                        {:in_array($childRules[$menu->url], $groupRules) ? 'checked' : ''} >
+                                    <span class="text">{$menu->title}</span>
+                                </label>
+                                
+                                {php}$subTree = $menu->children();{/php}
+                                {if condition="!empty($subTree)"}
+                                <ul class="auth-item">
+                                    {volist name="subTree" id="menu"}
+                                    <li>
+                                        <label>
+                                            <input class="auth-checkbox" type="checkbox" name="rules[]"
+                                                value="{$childRules[$menu->url]}" 
+                                                {:in_array($childRules[$menu->url], $groupRules) ? 'checked' : ''} >
+                                            <span>{$menu->title}</span>
+                                        </label>
+                                    </li>
+                                    {/volist}
+                                </ul>
+                                {/if}
+                            </li>
+                        {/volist}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {/volist}
+        </div>
+        
+    </div>
+
+    <div class="box-footer clearfix">
+        <button class="btn btn-default back">返回</button>
+        <button type="submit" class="btn btn-success">确认</button>
+    </div>
+</form>
+</div>
+</div>
+</div>
+{/block}

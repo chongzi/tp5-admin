@@ -1,0 +1,29 @@
+<?php
+namespace app\admin\model;
+
+use think\Model;
+use think\Db;
+class Gift extends BaseModel
+{
+    //新增和更新自动完成
+    protected $auto = [];
+    protected $insert = [];  
+    protected $update = [];  
+
+    protected function initialize($model='',$class='')
+    {
+        $arr = explode("\\", __CLASS__);
+        //$model = "admin/".$arr[count($arr)-1];//获取当前模型
+        $model = $arr[count($arr)-1];//获取当前模型
+        parent::initialize($model,__CLASS__);
+    }
+
+    public function viewListBy($where=null,$field='',$limit=100,$order='id desc')
+    {
+        $res    = Db::view('s_gift a','*')
+                ->view('s_app_gift b','app_id','a.id=b.gift_id')
+                ->where($where)
+                ->select();
+        return $res;
+    }
+}

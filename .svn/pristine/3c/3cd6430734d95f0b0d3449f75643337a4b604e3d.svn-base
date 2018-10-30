@@ -1,0 +1,125 @@
+<?php
+
+namespace base\payment;
+
+/**
+ * 支付接口驱动
+ * 
+ * 回调路由策略
+ *     后台回调：baseUrl + 'notify/' + payWay + '/' + account
+ *     前台回调：baseUrl + 'return/' + payWay + '/' + account
+ *     
+ *     e.g: http://en.qqtn.com/api/notify/alipay/default
+ *         baseUrl => http://en.qqtn.com/api/
+ *         payWay => alipay
+ *         account => default
+ * 
+ * example:
+ *     //一、 支付对象初始化
+ *     $option = array(
+ *         'account' => 'default' //定义支付账户名称
+ *         ...
+ *     );
+ *     $pay = new Pay('alipay', $option);
+ *     
+ *     //二、初始化外部信息，不是必须的操作
+ *     $order = array(
+ *         'out_trade_no' => '20171110246814',
+ *         'title' => '游戏充值',
+ *         'money' => '100',
+ *         'product_id' => '158'
+ *     );
+ *     $pay->init($order);
+ *     
+ *     //三、调用支付相关接口
+ *     //获取APP支付参数
+ *     $pay->app();
+ *     
+ *     //获取PC浏览器支付参数
+ *     $pay->web();
+ *     
+ *     //支付结果查询
+ *     $pay->orderQuery('20171110246814');
+ *     
+ *     //四、错误消息
+ *     $pay->getError();
+ *     
+ * 约定：
+ *     1. 【支付账户】 不同支付账户配置为不同的配置文件，放在支付通道目录的Config目录下，文件名规则为支付账户名称首字母大写。
+ * e.g: 'default' => Config/Default.php。配置格式参考Default.php文件
+ * 
+ *     2. 【类PayBase】 所有与自身系统相关的支付逻辑，都写在PayBase中，支付接口只做 支付数据格式化、支付参数验签等操作。
+ *     
+ *     3. 【支付启动参数】 不同支付方式启动形式不一样，与前端交互流程有差别，需要做相关说明。
+ * e.g: PC端浏览器支付：微信返回一条协议链接，需要进一步转码为二维码，才能进行扫码操作完成支付；
+ *                      支付宝会返回构造的表单，JS自动执行表单提交跳转到支付宝的收银台页面。
+ *                      
+ *     4. 【out_trade_no】 注意在 `$pay->init($info);` 操作中用键值 out_trade_no 作为订单号
+ *     
+ *     5. 订单查询接口，只在订单已支付成功的情形下，返回true，其他情况都返回false，通过 `$pay->getError();` 查看具体错误信息。
+ */
+class Pay
+{
+    public static $type_map = array(
+        'zfb' => 'Alipay',
+        'alipay' => 'Alipay',
+        'wxpay' => 'Wxpay',
+    );
+
+    protected $instance = null;
+
+    public function __construct($pay_type, $option = array())
+    {
+        if (self::$type_map[$pay_type]) {
+            $pay_type = self::$type_map[$pay_type];
+        }
+
+        //$pay_type = parse_name($pay_type, 1);
+        $class = 'base\payment\\' . strtolower($pay_type) . '\\' . $pay_type;
+        //echo $class;
+        //$class = "base\payment\wxpay\Wxpay";
+        //$class ="base\payment\Pay";
+        if (class_exists($class))
+        {
+            $this->instance = new $class($option);
+        }
+    }
+
+    public function __call($method, $args)
+    {
+        if (is_null($this->instance)) {
+            return -1;
+        }
+
+        if (method_exists($this->instance, $method))
+        {
+            //if (version_compare(PHP_VERSION, '5.6.0', '<')) {
+                switch ($method) {
+                    case 'init':
+                    case 'orderQuery':
+                    case 'refundQuery':
+                        $this->instance->{$method}($args[0]);
+                        break;
+
+                    case 'refund':
+                        $this->instance->{$method}($args[0], $args[1], $args[2]);
+                        break;
+                        
+                    default:
+                        return $this->instance->{$method}($args);
+                        break;
+                }
+            // } else {
+            //     // PHP 5.6+ 的可变长参数列表
+            //     // 经测试在服务器5.5环境下会报语法错误
+            //     return $this->instance->{$method}(...$args);
+            // }
+
+        } 
+        else 
+        {
+            return 0;
+        }
+    }
+
+}

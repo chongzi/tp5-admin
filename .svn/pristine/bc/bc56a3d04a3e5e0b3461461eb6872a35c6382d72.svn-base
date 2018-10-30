@@ -1,0 +1,22 @@
+<?php
+
+class NativeData extends WxPayDataBase
+{
+
+    public function setData($data)
+    {
+        $this->values['appid'] = \WxPayConfig::APPID;
+        $this->values['partnerid'] = \WxPayConfig::MCHID;
+        $this->values['prepayid'] = $data['prepay_id'];
+        $this->values['package'] = 'Sign=WXPay';
+        $this->values['noncestr'] = $data["nonce_str"];
+        $this->values['timestamp'] = $data["timestamp"];
+    }
+
+    public function SetSign()
+    {
+        $sign = $this->MakeSign();
+        $this->values['sign'] = $sign;
+        return $sign;
+    }
+}

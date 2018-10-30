@@ -1,0 +1,30 @@
+<?php
+
+namespace app\api\controller\v1;
+
+use app\api\controller\Base;
+use think\Cache;
+
+class Gift extends Base {
+
+	public function info()
+	{
+		$data = $this->data;
+		$res = service("gift")->info($data["app_id"]);
+		return $this->apkReturn($res);
+	}
+
+	public function giftList()
+	{
+		$data = $this->data;
+		$res = service("gift")->listBy($data);
+		return $this->apkReturn($res);
+	}
+
+	public function myGiftList()
+	{
+		$data = $this->data;
+		$res = service("gift_convert_log")->listBy($data);
+		return $this->apkReturn($res);
+	}
+}

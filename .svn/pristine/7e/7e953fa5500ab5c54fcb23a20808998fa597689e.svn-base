@@ -1,0 +1,63 @@
+{extend name="layout/common" /}
+
+{block name="header"}
+<section class="content-header">
+    <h1>
+        成员授权
+    </h1>
+</section>
+{/block}
+
+{block name="body"}
+<div class="row">
+<div class="col-xs-12">
+<div class="box box-success">
+<form action="{:url('admin/AuthManager/auth', ['id' => $thisGroup->id])}" method="POST" class="ajax-post">
+    <div class="box-header">
+        用户组：
+        <div class="btn-group">
+            <button type="button" class="btn btn-success">{$thisGroup->title}</button>
+            <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown">
+                <span class="caret"></span>
+                <span class="sr-only">Toggle Dropdown</span>
+            </button>
+            <ul class="dropdown-menu" role="menu">
+            {volist name="groups" id="group"}
+                <li><a href="{:url('admin/AuthManager/user', ['id' => $group->id])}">{$group->title}</a></li>
+            {/volist}
+            </ul>
+        </div>
+    </div>
+    
+    <div class="box-body">
+
+        <table class="table table-hover table-bordered">
+            <tr>
+                <th>授权</th>
+                <th>ID</th>
+                <th>用户名</th>
+                <th>昵称</th>
+            </tr>
+            {volist name="managers" id="manager"}
+            <tr>
+                <td><input type="checkbox" class="checkbox" name="memberIds[]" value="{$manager->id}"
+                    {:in_array($manager->id, $memberIds) ? 'checked' : ''} ></td>
+                <td>{$manager.id}</td>
+                <td>{$manager.name}</td>
+                <td>{$manager.nick_name}</td>
+            </tr>
+            {/volist}
+            
+        </table>
+        
+    </div>
+
+    <div class="box-footer clearfix">
+        <button class="btn btn-default back">返回</button>
+        <button type="submit" class="btn btn-success">确认</button>
+    </div>
+</form>
+</div>
+</div>
+</div>
+{/block}

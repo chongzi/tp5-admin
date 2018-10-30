@@ -1,0 +1,367 @@
+<?php
+namespace R\Controller;
+use Think\Controller;
+use Think\Cache\Driver\Redis;
+
+class IndexController extends Controller {
+    private $_sites = null;
+    private $_siteName = null;
+    private $data = null;
+    private $site_id = null;
+    private $platform = null;
+    private $redis=null;
+    private $ref=null;
+    private $redis_import=1;
+
+    public function _initialize() {
+        $this->_sites = C('SITES');
+        if($this->redis_import ==1){
+            if (!($this->redis instanceof \Redis)){
+                try {
+                    $this->redis = new \Redis();
+                    $this->redis->connect('127.0.0.1',6379);
+                } catch (Exception $e) {
+                    $this->redis = '';
+                }
+
+            }  
+        }
+    }
+
+    public function index() {
+        if($this->createData()) {
+            $this->writeData();
+        }
+    }
+
+    /**
+     * 写数据
+     */
+    private function writeData() {
+        $table='Log_'.$this->site_id.'_'.$this->platform;
+        $id = M($table)->add($this->data);
+
+        // if(!$id){
+        //     if(in_array($this->site_id, array_column($this->_sites,'id'))){
+        //         $sql="SHOW COLUMNS FROM $table";
+        //         $result=M()->query($sql);
+        //         if(!$result){
+        //             $sql=D('CreateSql')->LogSql($this->site_id,$this->platform,$this->_siteName);
+        //             M()->execute($sql);
+        //             $sql=D('CreateSql')->ReleaseSql($this->site_id,$this->platform,$this->_siteName);
+        //             M()->execute($sql);
+        //             $id = M($table)->add($this->data);
+        //         }
+        //     }
+        // }
+        if($id) return;
+        file_put_contents('log_write_fail'.$this->site_id.'_'.$this->platform.'.txt', json_encode($this->data)."\r\n",FILE_APPEND);
+        file_put_contents('log_write_fail_sql'.$this->site_id.'_'.$this->platform.'.txt', M($table)->getlastsql()."\r\n",FILE_APPEND);
+    }
+
+    /**
+     * x
+     */
+    private function createData() {
+        $this->data = array(
+            'vip'       => get_client_ip(),
+            'vtime'     => NOW_TIME,
+        );
+        //过滤非收索引擎来源
+        $bloon = $this->getReferer();
+        if(!$bloon) {        
+            return false;
+        }
+        $resource = $this->getResource();
+        if(!$resource) {        
+            return false;
+        }
+
+ 
+
+        $this->ref['kwd_id'] = 0;
+        $len=strlen($this->ref['keyword']);
+        if($len>0) {
+            // 从数据库中查询关键字 id
+            $this->ref['kwd_id'] = M('keyword')->where(array('keyword' => $this->ref['keyword']))->getField('id');
+            // 如果没有查到，写入新的关键字
+            if(!$this->ref['kwd_id']) {
+                $this->ref['kwd_id'] = M('keyword')->add(array('keyword' => $this->ref['keyword']));
+                if(!$this->ref['kwd_id']){
+                    file_put_contents('insert_keyword_fail.txt', M('keyword')->getlastsql()."\r\n",FILE_APPEND );
+                }
+            }
+        }
+        unset($this->ref['keyword']);
+        $this->data += $this->ref;        
+        $this->data['rsc_id']       = $resource['id'];
+        $this->data['epy_id']       = $resource['epy_id'];
+        $this->data['type']         = $resource['type'];
+        $this->data['add_time']     = $resource['add_time'];
+        if(!$this->data['ref_site']) $this->data['ref_site']=0;
+        if(!$this->data['ref_url']) $this->data['ref_url']='';
+        return true;
+    }
+
+    /**
+     * 获取资源 id
+     */
+    private function getResource() {
+        $platform = $_GET['platform'];
+        if($platform==''){
+            $this->platform=1;
+        }else{
+            if($platform>0){
+                $this->platform=$platform;  
+            }else{
+                return false;
+            }
+        }
+        // 处理站点
+        $url = strtolower($_GET['url']);
+        if($url != strtolower($_SERVER['HTTP_REFERER'])){
+            return false;
+        }
+        if(strpos(substr($url,0,35),"//mipcache.bdstatic.com/c")!=false){
+            $bdstatic=1;
+            $url=str_replace('https://mipcache.bdstatic.com/c/','http://',$url);
+            $url=str_replace('http://mipcache.bdstatic.com/c/','http://',$url);
+            if(strpos($url,'m.cr173.com')!=false){
+                $this->platform=3;
+            }
+        }
+        $this->_siteName = getDomain($url);
+        if($this->_siteName=='aiskycn.com'){
+            $this->_siteName='skycn.com';
+        }
+        $rscId = intval($_GET['rid']); // 资源 id
+
+        // 如果站点不存在, 或者资源 id 不存在, 直接返回 false
+        if(!array_key_exists($this->_siteName, $this->_sites) || !$rscId) {
+            return false;
+        }
+
+        // 处理关键字 id
+        $type = $this->getType(); // 类型
+        $addTime = $this->getAddTime($type); // 资源添加时间
+        // 类型错误, 或者添加时间错误，直接返回 false
+        if($type === false || $addTime === false) {
+            return false;
+        }
+
+        // 员工 id 不存在, 返回 false
+        if(!($epyId = $this->getEpyId())) {
+            return false;
+        }
+
+
+        
+        $this->site_id = $this->_sites[$this->_siteName]['id']; // 站点 id
+        $content=trim($_GET['content']);
+        $content=mb_substr($content,0,15,'utf-8');     
+        $_tmp_array=array(" ",'(',')','（','）','|');
+        foreach($_tmp_array as $key=>$value){
+            $content=explode($value, $content);
+            $content=$content[0];
+        }
+
+        if($this->redis_import==1){
+            try {
+                // if(is_resource($this->redis->socket)){
+                    /*过滤刷量 根据ref_url搜索后每次都不一样过滤  百度 和 360 id分别是1和8*/
+                    // $site_id = $this->site_id;
+                    // if($site_id == 7 && $this->ref['keyword'] && in_array($this->ref['ref_site'], array(1,8))){
+                    //     if(strlen($_GET['ref'])<200){
+                    //         $md5_get_ref = md5($_GET['ref']);
+                    //         if($this->redis->exists($md5_get_ref)){
+                    //             file_put_contents("ref.log",$_GET['ref']."\r\n",FILE_APPEND);
+                    //             return false;
+                    //         }
+                    //         $this->redis->setex($md5_get_ref, 86400, '');
+                    //     }
+                    // }
+                    // $len=$this->redis->llen('Jsonlist');
+                    // if($len<= 1000000){
+                        $array = array(
+                            'site_id' => $this->site_id,
+                            'type' => $type,
+                            'rsc_id' => $rscId,
+                            'platform' => $this->platform,
+                            'add_time' => $addTime,
+                            'url' => substr($url,0, 500),
+                            'content' => $content,
+                            'epy_id'  => $epyId,
+                            'vip'     => $this->data['vip'],
+                            'vtime'   => $this->data['vtime']
+                        );
+                        $array+=$this->ref;
+                        $string=json_encode($array);
+                        $this->redis->rpush('Jsonlist',$string);
+                        $this->redis->incrby('total',1);
+                        return false;
+                    // }
+                // }
+            } catch (Exception $e) {
+                
+            }
+
+        }
+
+        $resource = M('Resource')->where(array('site_id' => $this->site_id,'type' => $type, 'rsc_id' => $rscId,'platform'=>$this->platform))->field('id,epy_id,add_time')->find();
+        if($resource !== null) { // 如果资源在数据库中存在, 直接返回资源数据
+            $resource['type'] = $type;
+            $data=$resource;
+        } else { 
+            // 资源不存在, 添加资源
+            $data = array(
+                'site_id'       => $this->site_id,
+                'rsc_id'        => $rscId,
+                'epy_id'        => $epyId,
+                'url'           => substr($url,0, 500),
+                'type'          => $type,
+                'content'       => $content,
+                'add_time'      => $addTime,
+                'platform'      => $this->platform,
+            );
+            $data['id'] = M('Resource')->add($data);
+        }
+        return $data;
+    }
+
+    /**
+     * 获取员工 id
+     */
+    private function getEpyId() {
+        // 如果用户名为空，直接返回 false
+        if(!($username = strtolower(trim($_GET['username'])))) {
+            return false;
+        }
+        $username .= "@{$this->_siteName}";
+        $userlist = C('EMPLOYEE');
+        return array_key_exists($username, $userlist) ? $userlist[$username]['id'] : false;
+    }
+
+    /**
+     * 获取资源类型
+     */
+    private function getType() {
+        $type = intval($_GET['type']);
+        return array_key_exists($type, $this->_sites[$this->_siteName]['type']) ? $type : false;
+    }
+
+
+    /**
+     * 获取添加时间
+     */
+    private function getAddTime($type) {
+        $addTime = strtotime(trim($_GET['atime'])); // 获取添加时间
+        $addTime = $addTime - ($addTime + 28800) % 86400; // 将添加时间取整
+        // 如果没有添加时间，判断该类型是否记录空添加时间
+        if(!$addTime) {
+            if($this->_sites[$this->_siteName]['type'][$type]['wirteEmptyAddTime']) {
+                return NOW_TIME - (NOW_TIME + 28800) % 86400; // 如果记录空添加时间，将当前时间作为添加时间返回
+            } else {
+                return false;
+            }
+        }
+
+        // 如果该分类截止日期存在，判断添加时间是否小于截止时间，如果小于，返回 false
+        if(isset($this->_sites[$this->_siteName]['type'][$type]['expiry']) && $this->_sites[$this->_siteName]['type'][$type]['expiry']) {
+            if($addTime < strtotime($this->_sites[$this->_siteName]['type'][$type]['expiry'])) {
+                return false;
+            }
+        }
+
+        // 如果该分类截止天数存在，判断添加时间是否小于当前时间往前推截止天数，如果小于，返回 false
+        if(isset($this->_sites[$this->_siteName]['type'][$type]['expiryDays']) && $this->_sites[$this->_siteName]['type'][$type]['expiryDays']) {
+            if($addTime < NOW_TIME - (86400 * $this->_sites[$this->_siteName]['type'][$type]['expiryDays'])) {
+                return false;
+            }
+        }
+
+        return $addTime;
+    }
+
+    /**
+     * 获取来源网站信息
+     */
+    private function getReferer() {
+
+        // 将来源 url 转成小写
+        // $ref = strtolower(urldecode(urldecode($_GET['ref'])));
+        $ref = strtolower($_GET['ref']);
+        if(stripos($ref, '://m.baidu.com/mip/c/m.cr173.com')||stripos($ref, '://m.baidu.com/mip/c/m.qqtn.com')){
+            return false;
+        }
+        // 由正则表达式获取来源网站名称，如果失败，直接返回 false
+        if(null != ($ref_site = getDomain($ref))) {
+            $whiteList = C('REFERER_SITE');
+            // 遍历所有站点
+            foreach($whiteList as $name => $info) {
+                // 遍历站点的所有 match 值
+                foreach($info['match'] as $match) {
+                    if(stripos($ref_site, $match) !== false) { // 找到了匹配的值
+                        // if(strpos($ref, '?')!==false){
+                        //     $find_times=substr_count($ref,'&');
+                        //     if($find_times < 1){
+                        //             file_put_contents('3_0.txt', '=='.$ref."\r\n",FILE_APPEND);
+                        //             return false;
+                        //     }
+                        // }
+                        // 处理关键字
+                        $keyword = '';
+                        if(isset($whiteList[$name]['keyword_rule'])) {
+                            foreach($whiteList[$name]['keyword_rule'] as $rule) {
+                                if(preg_match($rule, $ref, $key)) {
+                                    $keywordLength = min(100, C('KEYWORD_LENGTH'));
+                                    $charset=$_GET['charset'];
+                                    $encode_arr = array('UTF-8','ASCII','GBK','GB2312','BIG5','JIS','eucjp-win','sjis-win','EUC-JP');
+                                    if(!in_array($charset , $encode_arr)) $encode_arr[]=$charset;
+                                    foreach ($encode_arr as $item) 
+                                    {
+                                        $tmp = mb_convert_encoding($keyword, $item, $item);
+                                        if (md5($tmp) == md5($keyword)) {
+                                            $encoded = $item;
+                                            break;
+                                        }
+                                    }
+                                    if(isset($encoded)){
+                                        $keyword = mb_substr(urldecode(trim($key[1])), 0, $keywordLength, $encoded);
+                                    }
+                                    $keyword=$this->filterEmoji($keyword);
+                                    break;
+                                }
+                            }
+                        }
+                        $ref = substr($ref,0, 200);
+                        // if($keyword==''){
+                        //     if($whiteList[$name]['id']==1){
+                        //         $ref='http://www.baidu.com';
+                        //     }
+                        // }
+                        $this->ref=array('ref_site' => $whiteList[$name]['id'], 'keyword' => $keyword, 'ref_url' => $ref);
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+        //过滤颜文字 和 特殊字符
+    private function filterEmoji($str)  
+    {  
+     $str = preg_replace_callback(  
+       '/./u',  
+       function (array $match) {  
+        return strlen($match[0]) >= 4 ? '' : $match[0];  
+       },  
+        $str);  
+        $array=array("\n","\r","'","\\");
+        foreach($array as $v){
+            $str=str_replace($v, '', $str);      
+        }
+      return $str;  
+    } 
+
+}

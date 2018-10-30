@@ -1,0 +1,114 @@
+{extend name="layout/common" /}
+
+{block name="header"}
+<section class="content-header">
+    <h1>
+        礼品管理
+    </h1>
+</section>
+{/block}
+
+{block name="body"}
+<div class="row">
+    <div class="col-xs-12">
+        
+        <div class="box box-success">
+            <div class="box-header">
+                <form method="get" action="{:url('index')}" id="search" role="form" class="form-inline">
+                    <input  type="text" name="title" value="{$search.title}" placeholder="请输入你要查找的id" class="form-control"/>
+                     <select style="width:130px;" name="app_id">
+                        <option value="0">应用名--</option>
+                        {volist name="app_id" id="vo"}
+                            <option value="{$vo}" {if condition="$search['app_id'] == $vo"}selected="true"{/if}>{$app_info[$vo]}</option>
+                        {/volist}
+                    </select>
+                    <select style="width:130px;" name="status">
+                        <option value="-1" selected="true">状态--</option>
+                        {php}$s = config('money_state');{/php}
+                        {volist name="s" id="vo"}
+                            <option value="{$key}" {if condition="$search['status'] == $key"}selected="true"{/if}>{$vo}{$status}</option>
+                        {/volist}
+                    </select>
+                    <a class="btn btn-success btn-sm"  href="javascript:$('#search').submit();" id="search" >搜  索</a>
+                </form>
+
+            </div>
+
+            <form method="POST" id="form_list" name="form_list" role="form" class="form-inline">
+                <div class="box-body">
+                    <table class="table table-hover table-bordered">
+                        <tr>
+                            <th ><input id="all"   type="checkbox"  onclick="chk_all()" /></th>
+                            <th>编号</th>
+                            <th>昵称</th>
+                            <th>头像</th>
+                            <th>应用名</th>
+                            <th>提现金额</th>
+                            <th>花费平台币</th>
+                            <th>兑换时间</th>   
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                        {volist name="list" id="vo"}
+                        <tr>
+                            <td>
+                                <input class="check-all" type="checkbox"  value="{$vo.id}" name="id[]" checked/>
+                            </td>
+                            <td>{$vo.id}</td>
+                             <td>{$vo.nick_name}</td>
+                            <td>
+                                {if condition=" !empty($vo['face']) "}
+                                <img class="imgUpload" src="{$vo.face}" height="40" data-id="{$vo.id}">
+                                {else/}
+                                <img class="imgUpload" src="/Public/Admin/images/none.jpg" height="40" data-id="{$vo.id}">
+                                {/if}
+                            </td>
+                            <td>{$vo.title}</td>
+                            <td>{$vo.money}</td>
+                            <td>{$vo.use_money}</td>
+                            <td>{$vo.add_time|date="Y-m-d H:i",###}</td>
+                            <td>
+                                    {:config('money_state')[$vo['status']]} 
+                            </td>
+                            <td><a href="{:Url('edit',array('id'=>$vo['id']))}" class="label label-success">编辑</a>
+                           
+                                <a style="margin-left:20px;" href="javascript:drop_confirm('您确定要删除吗?','{:url('del?id='.$vo['id'])}')" class="label label-danger">删除</a>
+                            </td>
+                        </tr>
+                        {/volist}
+                    </table>
+                    <div class="h_pagination" style="padding-top: 15px;">
+                        <div style="width:130px;">总条数 : {$count}</div>
+                    {$list->render()}
+                    </div>
+                </div>
+                <div class="box-header" style="padding-bottom:20px;">
+<!--                     <a href="{:url('edit')}" type="button" class="btn btn-success btn-sm">添加<i class="fa fa-fw fa-plus"></i></a> -->
+                    <a class="btn btn-success btn-sm" onclick="form_submit('form_list','{:url('del')}','您确定删除吗？')">删除</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    // function sort(sort,id){
+    //     if(sort && id){
+    //         $.ajax({
+    //             url:"{:url('app/sort')}",
+    //             data:{sort:sort,id:id},
+    //             type:'POST',
+    //             dataType:'json',
+    //             success:function(res){
+    //                 if(res.state == 'success'){
+    //                     alert('修改成功');
+    //                 }
+    //             }
+    //         }) 
+    //     }
+
+    // }
+
+
+
+</script>
+{/block}

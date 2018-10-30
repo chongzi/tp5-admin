@@ -1,0 +1,125 @@
+{extend name="layout/common" /}
+
+
+{block name="header"}
+<section class="content-header">
+    <h1>
+        编辑菜单
+    </h1>
+</section>
+{/block}
+
+{block name="body"}
+<div class="row">
+
+    <div class="col-md-12">
+        <div class="box box-success">
+            <div class="box-header with-border">
+                <h3 class="box-title">
+                    <small>
+                        <a href="{:url('admin/menu/index')}"><i class="fa fa-fw fa-home"></i>root</a>
+                        {volist name="chain" id="menu"}
+                         > <a href="{:url('admin/menu/index',['pid'=>$menu['id']])}">{$menu.title}</a>
+                        {/volist}
+                        > {$info.title}
+                    </small>
+                </h3>
+            </div>
+
+            <form action="{:url('admin/menu/update', ['id' => $info['id']])}" method="PUT" class="form-horizontal ajax-post">
+                <div class="box-body">
+
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">标题</label>
+
+                        <div class="col-sm-10">
+                            <input type="text" name="title" class="form-control" value="{$info.title}">
+                            <span class="help-block">用于后台显示的配置标题</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">排序</label>
+
+                        <div class="col-sm-10">
+                            <input type="number" name="sort" class="form-control" value="{$info.sort}">
+                            <span class="help-block">用于分组显示的顺序</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">链接</label>
+
+                        <div class="col-sm-10">
+                            <input type="text" name="url" class="form-control" value="{$info.url}">
+                            <span class="help-block">使用[模块/控制器/操作]的格式填写</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">上级菜单</label>
+
+                        <div class="col-sm-10">
+                            <select class="form-control" name="pid">
+                                {include file="partials/tree" /}
+                            </select>
+                            <span class="help-block">所属的上级菜单</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">分组</label>
+
+                        <div class="col-sm-10">
+                            <input type="text" name="group" class="form-control" value="{$info.group}">
+                            <span class="help-block">用于左侧分组二级菜单</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">是否隐藏</label>
+                        <div class="col-sm-10">
+                            <div class="checkbox">
+                                <label>
+                                    <input type="radio" name="hide" value="1" {$info.hide ? 'checked' : ''}> 是
+                                </label>
+                                <label>
+                                    <input type="radio" name="hide" value="0" {$info.hide ? '' : 'checked'}> 否
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">仅开发者模式可见</label>
+                        <div class="col-sm-10">
+                            <div class="checkbox">
+                                <label>
+                                    <input type="radio" name="is_dev" value="1" {$info.is_dev ? 'checked' : ''}> 是
+                                </label>
+                                <label>
+                                    <input type="radio" name="is_dev" value="0" {$info.is_dev ? '' : 'checked'}> 否
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">说明</label>
+
+                        <div class="col-sm-10">
+                            <input type="text" name="tip" class="form-control" value="{$info.tip}">
+                            <span class="help-block">菜单详细说明</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="box-footer">
+                    <button class="btn btn-default back">返回</button>
+                    <button type="submit" class="btn btn-success">更新</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{/block}

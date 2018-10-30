@@ -1,0 +1,10 @@
+<?php
+namespace app\admin\service;
+use Think\Request;
+use think\Db;
+use think\Model;
+
+class BaseService  extends Model
+{
+    
+}

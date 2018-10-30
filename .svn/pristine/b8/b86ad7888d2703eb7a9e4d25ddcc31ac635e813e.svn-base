@@ -1,0 +1,104 @@
+$(document).ready(function(){
+    $(document).keydown(function(e){
+        e = e || window.event;
+        var keycode = e.which ? e.which : e.keyCode;
+        console.log(keycode);
+        if(keycode == 38){
+            e.preventDefault();
+            e.stopPropagation();
+            if(jQuery.trim($("#append").html())==""){
+                return;
+            }
+            movePrev();
+        }else if(keycode == 40){
+            e.preventDefault();
+            e.stopPropagation();
+            if(jQuery.trim($("#append").html())==""){
+                return;
+            }
+            $("#kw").blur();
+            if($("#append .item").hasClass("addbg")){
+                moveNext();
+            }else{
+                $("#append .item").removeClass('addbg').eq(0).addClass('addbg');
+            }
+           
+        }else if(keycode == 13){
+            dojob();
+        }
+    });
+
+    var movePrev = function(){
+        $("#kw").blur();
+        var index = $(".addbg").prevAll().length;
+        if(index == 0){
+            $("#append .item").removeClass('addbg').eq($(".item").length-1).addClass('addbg');
+        }else{
+            $("#append .item").removeClass('addbg').eq(index-1).addClass('addbg');
+        }
+    }
+   
+    var moveNext = function(){
+        var index = $(".addbg").prevAll().length;
+        if(index == $(".item").length-1){
+            $("#append .item").removeClass('addbg').eq(0).addClass('addbg');
+        }else{
+            $("#append .item").removeClass('addbg').eq(index+1).addClass('addbg');
+        }
+    }
+   
+    var dojob = function(){
+        $("#kw").blur();
+        var value = $(".addbg").text();
+        var game_id = $(".addbg").data('id');
+        $("#kw").val(value);
+        $("input[name=game_id]").val(game_id);
+        $("#append").hide().html("");
+    }
+})
+
+function getContent(obj,data,_callback){
+    var kw = jQuery.trim($(obj).val());
+    if(kw == ""){
+        $("#append").hide().html("");
+        return false;
+    }
+    var html = "";
+    
+    i=0;
+    for(id in data){
+        i++;
+        var game_name = data[id];
+        html = html + "<div class='item' onmouseenter='getFocus(this)' onClick='getCon(this,\""+obj+"\","+_callback+");' data-id='"+id+"'>" + game_name + "</div>"
+    }
+    
+    if(html != ""){
+        $("#append").show().html(html);
+    }else{
+        $("#append").hide().html("");
+    }
+    if( i == 1 ){
+        autoSelect(id);
+    }
+}
+function getFocus(obj){
+    $("#append .item").removeClass("addbg");
+    $(obj).addClass("addbg");
+}
+function getCon(obj,_handler,_callback){
+    var value = $(obj).text();
+    var id = $(obj).data('id');
+    
+    $(_handler).val(value);
+    $("#append").hide().html("");
+    
+    if( typeof _callback !== 'undefined'){
+        _callback(value,id);
+    }
+}
+
+function autoSelect(id){
+    /*setTimeout(function(){
+        $('#append div[data-id='+id+']').click();
+    },500)*/
+}

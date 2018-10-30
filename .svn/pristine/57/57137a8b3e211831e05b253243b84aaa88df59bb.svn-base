@@ -1,0 +1,80 @@
+{extend name="layout/common" /}
+
+{block name="header"}
+<section class="content-header">
+    <h1>
+        应用管理
+    </h1>
+</section>
+{/block}
+
+{block name="body"}
+<div class="row">
+    <div class="col-xs-12">
+        
+        <div class="box box-success">
+            <div class="box-header">
+                <form method="get" action="{:url('index')}" id="search" role="form" class="form-inline">
+                    <input  type="text" name="title" value="{$search.title}" placeholder="请输入你要查找的内容" class="form-control"/>
+                    <a class="btn btn-success btn-sm"  href="javascript:$('#search').submit();" id="search" >搜  索</a>
+                </form>
+            </div>
+            <form method="POST" id="form_list" name="form_list" role="form" class="form-inline">
+                <div class="box-body">
+                    <table class="table table-hover table-bordered">
+                        <tr>
+                            <th ><input id="all"   type="checkbox"  onclick="chk_all()" /></th>
+                            <th>编号</th>
+                            <th>应用图标</th>
+                            <th>中文名称</th>
+                            <th>英文名称</th>
+                            <th>包名</th>
+                            <th>版本</th>
+                            <th>添加时间</th>
+                            <th>更新时间</th>
+                            <th>排序</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                        {volist name="list" id="vo"}
+                        <tr>
+                            <td>
+                                <input class="check-all" type="checkbox"  value="{$vo.id}" name="id[]" checked/>
+                            </td>
+                            <td>{$vo.id}</td>
+                            <td>
+                                {if condition=" !empty($vo['ico']) "}
+                                <img class="imgUpload" src="{$vo.ico}" height="40" data-id="{$vo.id}">
+                                {else/}
+                                <img class="imgUpload" src="/Public/Admin/images/none.jpg" height="40" data-id="{$vo.id}">
+                                {/if}
+                            </td>
+                            <td>{$vo.title}</td>
+                            <td>{$vo.name}</td>
+                            <td>{$vo.package_name}</td>
+                            <td>{$vo.version}</td>
+                            <td>{$vo.add_time|date='Y-m-d H:i:s',###}</td>
+                            <td>{$vo.upd_time|date='Y-m-d H:i:s',###}</td>
+                            <td><input type="text" name="sort[{$vo.id}]" value="{$vo.sort}" class="form-control" style="width:100px"/></td>
+                            <td>
+                                    {$app_opt_status[$vo['status']]} 
+                            </td>
+                            <td><a href="{:Url('App/edit',array('id'=>$vo['id']))}" class="label label-success">编辑</a>
+                                {if condition="$vo['status'] == 0"}
+                                <a style="margin-left:20px;" href="javascript:drop_confirm('你确定下架此应用吗！', '{:Url('App/status_upd',array('id'=>$vo['id'],'status'=>1))}');" class="label label-danger">下架</a>
+                                {else/}
+                                <a style="margin-left:20px;" href="javascript:drop_confirm('你确定上架此应用吗！', '{:Url('App/status_upd',array('id'=>$vo['id'],'status'=>0))}');" class="label label-success">上架</a>
+                                {/if}
+                        </tr>
+                        {/volist}
+                    </table>
+                </div>
+                <div class="box-header" style="padding-bottom:20px;">
+                    <a href="{:url('edit')}" type="button" class="btn btn-success btn-sm">添加<i class="fa fa-fw fa-plus"></i></a>
+                    <a class="btn btn-success btn-sm" onclick="form_submit('form_list','{:url('upd_sort')}','您确定更新排序吗？')">更新排序</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{/block}

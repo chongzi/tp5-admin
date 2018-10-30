@@ -1,0 +1,91 @@
+{extend name="layout/common" /}
+
+
+{block name="header"}
+
+{/block}
+
+{block name="body"}
+<div class="row">
+
+    <div class="col-md-12">
+        <div class="box box-success">
+            <div class="box-header with-border">
+            </div>
+            <form method="post" action="{:Url('upd')}" enctype="multipart/form-data" >
+                <table class="table table-hover table-bordered">
+                    <tbody>
+                        <tr>
+                            <td colspan="3"><h3>编辑新闻</h3></td>
+                        </tr>
+                        <tr>
+                            <td width="200">名称：</td>
+                            <td colspan="3">
+                                <input name="title" id="title"  size="16" type="text" value="{$info['title']}" style="width: 400px;" /> <span>*</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td width="200">应用：</td>
+                            <td colspan="3">
+                                <select name="app_id" id="app_id" class="">
+                                    <option value="">请选择所属应用</option>
+                                    {volist name="app_list" id="vo"}
+                                        <option value="{$vo.id}">{$vo.name}</option>
+                                    {/volist}
+                                </select>
+                                <script>
+                                    $("#app_id").val("{$info['app_id']}") ;
+                                </script>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td width="200">类型：</td>
+                            <td colspan="3">
+                                <select name="type_id" id="type_id" class="">
+                                    <option value="">请选择类型</option>
+                                    {volist name="news_type_list" id="vo"}
+                                        <option value="{$vo.id}">{$vo.name_adorn}</option>
+                                    {/volist} 
+                                </select>                           
+                                <script>
+                                    $("#type_id").val("{$info['type_id']}") ;
+                                </script>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td width="200">图片：</td>
+                            <td colspan="3">
+                                <input name="img" id="img" type="file" /> <span>*</span>
+                                <if condition="!empty($info['img'])"><img class="game_ico" src="{$info['img']}" width="100"></if>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td width="200">音频/视频：</td>
+                            <td colspan="3">
+                                <input name="voice" id="voice" type="file" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td width="200">作者：</td>
+                            <td colspan="3">
+                                <input name="author" id="author"  size="16" type="text" value="{$info['author']}" style="width: 400px;" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td width="200">内容：</td>
+                            <td colspan="3">
+                                <textarea id="body" name="body" rows="8" style="width: 800px;">{$info['body']}</textarea>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="row-fluid" style="margin-top: 20px;margin-left: 200px;padding-bottom:20px;">
+                    <notempty name="info.id"><input type="hidden" name="id" value="{$info['id']}"/></notempty>
+                    <button class="btn btn-primary" type="submit">提交</button>
+                    <button class="btn" type="reset" style="margin-left: 30px;">取消</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{/block}

@@ -1,0 +1,82 @@
+{extend name="layout/common" /}
+
+
+{block name="header"}
+<section class="content-header">
+    <h1>
+        编辑管理员信息
+    </h1>
+</section>
+{/block}
+
+{block name="body"}
+<div class="row">
+
+    <div class="col-md-12">
+        <div class="box box-success">
+            <div class="box-header with-border">
+            </div>
+
+            <form action="{:url('admin/manager/update', ['id' => $manager['id']])}" method="PUT" class="form-horizontal ajax-post">
+                <div class="box-body">
+
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">用户名</label>
+
+                        <div class="col-sm-10">
+                            <input type="text" name="name" disabled class="form-control" value="{$manager.name}">
+                            <span class="help-block">用于登录</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">上传头像</label>
+
+                        <div class="col-sm-10">
+                            <input type="hidden" class="file-upload" name="avatar" value="{$manager.avatar}">
+                            <img src="{$manager->avatar()}" height="100" class="image-upload" data-field-name="avatar">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">昵称</label>
+
+                        <div class="col-sm-10">
+                            <input type="text" name="nick_name" class="form-control" value="{$manager.nick_name}">
+                            <span class="help-block"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">是否禁用</label>
+                        <div class="col-sm-10">
+                            <div class="checkbox">
+                                <label>
+                                    <input type="radio" name="status" value="1" {$manager.status ? 'checked' : ''}> 启用
+                                </label>
+                                <label>
+                                    <input type="radio" name="status" value="0" {$manager.status ? '' : 'checked'}> 禁用
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">密码</label>
+
+                        <div class="col-sm-10">
+                            <input type="password" name="pwd" class="form-control">
+                            <span class="help-block">登录密码</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="box-footer">
+                    <button class="btn btn-default back">返回</button>
+                    <button type="submit" class="btn btn-success">更新</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{/block}

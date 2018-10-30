@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+{include file="partials/htmlheader" /} 
+{block name="style"}{/block}    
+</head>
+
+<body class="hold-transition skin-blue layout-top-nav">
+<div class="wrapper">
+    {include file="partials/common_components" /}
+
+    {include file="partials/mainheader_simple" /} 
+
+    <div class="content-wrapper">
+
+        {block name="header" /}{include file="partials/contentheader" /}{/block}
+
+        <section class="content">
+            {block name="body"}{/block}
+        </section>
+    </div>
+
+    {include file="partials/footer" /}
+
+</div>
+{include file="partials/scripts" /}
+
+{block name="script"}{/block}
+</body>
+</html>

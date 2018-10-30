@@ -1,0 +1,208 @@
+{extend name="layout/common" /} {block name="header"} {/block} {block name="body"}
+<div class="row">
+    <div class="col-md-12">
+        <div class="box box-success">
+            <div class="box-header with-border">
+            </div>
+            <form method="post" action="{:Url('upd')}" enctype="multipart/form-data" role="form" class="form-inline">
+                <table class="table table-hover table-bordered">
+                    <tbody>
+                        <tr>
+                            <td colspan="3">
+                                <h3>编辑应用</h3></td>
+                        </tr>
+                        <tr>
+                            <td width="200px">中文名称：</td>
+                            <td>
+                                {notempty name="info.id"}
+                                <input type="hidden" name="id" value="{$info['id']}" />{/notempty}
+                                <input name="title" size="16" type="text" value="{$info['title']}" {notempty name="info.id" }readonly{/notempty} class="form-control" style="width: 400px;" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td width="200px">英文名称：</td>
+                            <td>
+                                <input name="name" size="16" type="text" value="{$info['name']}" {notempty name="info.id" }readonly{/notempty} class="form-control" style="width: 400px;" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>图标上传：(bootstrap 插件上传)</td>
+                            <td>
+                                <input size="16" type="file" name="ico" id="ico" class="form-control" /> {if condition=" !empty($info['ico']) "}
+                                <img src="{$info.ico}" width="100" class="ico">
+                                <input type="hidden" name="ico" value="{$info.ico}" id="ico" /> {/if}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>OSS：(H5上传 需要在oss服务器开启域名 h5权限)</td>
+                            <td>
+                                <input type="text" name="path" id="path" style="width:500px" />
+                                <div id="ossfile"></div>
+                                <div id="console"></div>
+                                <div id="container">
+                                    <a id="selectfiles" href="javascript:void(0);" class='btn'>选择文件</a>
+                                    <a id="postfiles" href="javascript:void(0);" class='btn'>开始上传</a>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>文件地址：</td>
+                            <td>
+                                <input id="file_path" size="16" type="text" name="file_path" value="{notempty name='info.id'}{$info['file_path']}{/notempty}" class="form-control" class="form-control" style="width: 400px;" />
+                                <a id="checkPath" href="#" style="color:red;">检测</a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>包名：</td>
+                            <td>
+                                <input size="16" type="text" name="package_name" value="{notempty name='info.id'}{$info['package_name']}{/notempty}" id="package_name" {/notempty} class="form-control" style="width: 400px;" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>版本：</td>
+                            <td>
+                                <input size="16" type="text" name="version" value="{notempty name='info.id'}{$info['version']}{/notempty}" id="version" class="form-control" style="width: 400px;" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>文件大小：</td>
+                            <td>
+                                <input size="16" type="text" name="size" value="{notempty name='info.id'}{$info['size']}{/notempty}" id="size" class="form-control" style="width: 400px;" />
+                            </td>
+                        </tr>
+                        <empty name='info.id'>
+                            <else/>
+                            <tr>
+                                <td>更新时间：</td>
+                                <td>
+                                    <input type="text" id="upd_time" name="upd_time" value="{notempty name='info.id'}{$info['upd_time'] | date='Y-m-d h:i:s',###}{/notempty}" placeholder="起始时间" class="form-control" style="width: 400px;" />
+                                </td>
+                            </tr>
+                        </empty>
+                        <tr>
+                            <td>排序：</td>
+                            <td>
+                                <input size="16" type="text" name="sort" value="{notempty name='info.id'}{$info['sort']}{/notempty}" class="form-control" style="width: 400px;" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>状态：</td>
+                            <td>
+                                <select name="status" id="status" class="form-control">
+                                    {volist name="opt_status" id="vo"} {if condition="$key eq $info['status']"}
+                                    <option value="{$key}" selected>{$vo}</option>
+                                    {else /}
+                                    <option value="{$key}">{$vo}</option>
+                                    {/if} {/volist}
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>小程序appid：</td>
+                            <td>
+                                <input size="16" type="text" name="wx_app_id" value="{notempty name='info.wx_app_id'}{$info['wx_app_id']}{/notempty}" class="form-control" style="width: 400px;" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>小程序秘钥：</td>
+                            <td>
+                                <input size="16" type="text" name="wx_app_secret" value="{notempty name='info.wx_app_secret'}{$info['wx_app_secret']}{/notempty}" class="form-control" style="width: 400px;" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="4">
+                                <h3>游戏API接口加密信息 &nbsp;&nbsp;<a id="createRsaKeys" href="javascript:;" style='color:red;'>生成密钥对({:config('RSA_LEN')})</a></h3></td>
+                        </tr>
+                        <tr>
+                            <td width="200">公钥：</td>
+                            <td>
+                                <textarea name="pub_key" readonly rows="10" style="width: 400px;">{$info['pub_key']}</textarea>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td width="200">私钥：</td>
+                            <td>
+                                <textarea name="priv_key" readonly rows="10" style="width: 400px;">{$info['priv_key']}</textarea>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>音频：</td>
+                            <td>
+                                <input name="voice" size="16" id="voice" type="text" value="" style="width: 400px;">
+                                <div id="ossfile"></div>
+                                <div id="console"></div>
+                                <div id="container">
+                                    <a id="selectfiles" href="javascript:void(0);" class="label label-success">选择文件</a>
+                                    <a id="postfiles" href="javascript:void(0);" class="label label-danger">开始上传</a>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="row-fluid" style="margin-top: 20px;margin-left: 200px;padding-bottom:20px;">
+                    {notempty name="info.id"}
+                    <input type="hidden" name="id" value="{$info['id']}" />{/notempty}
+                    <button class="btn btn-primary" type="submit">提交</button>
+                    <button class="btn" type="reset" style="margin-left: 30px;">取消</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{/block} {block name="script"}
+<script type="text/javascript" src="/static/plupload-2.1.2/js/plupload.full.min.js"></script>
+<script type="text/javascript" src="/static/plupload-2.1.2/js/upload2.js"></script>
+<script>
+$("#ico").fileinput({
+    language: 'zh', //设置语言
+
+    // uploadUrl:"http://admin.tp5demo.com/upload", //上传的地址
+
+    allowedFileExtensions: ['jpg', 'gif', 'png'], //接收的文件后缀
+
+    //uploadExtraData:{"id": 1, "fileName":'123.mp3'},
+
+    uploadAsync: false, //默认异步上传
+
+    showUpload: false, //是否显示上传按钮
+
+    showRemove: true, //显示移除按钮
+
+    showPreview: true, //是否显示预览
+
+    showCaption: false, //是否显示标题
+
+    browseClass: "btn btn-primary", //按钮样式    
+
+    dropZoneEnabled: false, //是否显示拖拽区域
+
+    //minImageWidth: 50, //图片的最小宽度
+
+    //minImageHeight: 50,//图片的最小高度
+
+    //maxImageWidth: 1000,//图片的最大宽度
+
+    //maxImageHeight: 1000,//图片的最大高度
+
+    //maxFileSize:0,//单位为kb，如果为0表示不限制文件大小
+
+    //minFileCount: 0,
+
+    maxFileCount: 10, //表示允许同时上传的最大文件个数
+
+    enctype: 'multipart/form-data',
+
+    validateInitialCount: true,
+
+    previewFileIcon: "<iclass='glyphicon glyphicon-king'></i>",
+
+    msgFilesTooMany: "选择上传的文件数量({n}) 超过允许的最大数值{m}！",
+
+}).on("fileuploaded", function(event, data, previewId, index) {
+    console.log(data);
+});
+$("#voice").fileinput({
+    language: 'zh', //设置语言
+});
+</script>
+{/block}
